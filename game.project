@@ -1,0 +1,38 @@
+[bootstrap]
+main_collection = /main/main.collectionc
+
+[script]
+shared_state = 1
+
+[display]
+width = 1920
+height = 1080
+high_dpi = 1
+
+[android]
+input_method = HiddenInputField
+
+[html5]
+scale_mode = stretch
+
+[project]
+title = editor
+custom_resources = data
+dependencies#0 = https://github.com/selimanac/defold-graph-pathfinder/archive/refs/heads/main.zip
+dependencies#1 = https://github.com/selimanac/defold-random/archive/refs/heads/master.zip
+dependencies#2 = https://github.com/britzl/extension-imgui/archive/refs/heads/master.zip
+dependencies#3 = https://github.com/selimanac/defold-daabbcc/archive/refs/heads/v3.x.zip
+
+[native_extension]
+app_manifest = /macos.appmanifest
+
+[graph_editor]
+max_nodes = 256
+max_gameobject_nodes = 256
+max_edges_per_node = 6
+heap_pool_block_size = 32
+max_cache_path_length = 64
+
+[sprite]
+max_count = 1024
+
