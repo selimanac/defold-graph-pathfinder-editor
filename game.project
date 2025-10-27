@@ -16,7 +16,7 @@ input_method = HiddenInputField
 scale_mode = stretch
 
 [project]
-title = editor
+title = defold-graph-pathfinder-editor
 custom_resources = data
 dependencies#0 = https://github.com/selimanac/defold-graph-pathfinder/archive/refs/heads/main.zip
 dependencies#1 = https://github.com/selimanac/defold-random/archive/refs/heads/master.zip

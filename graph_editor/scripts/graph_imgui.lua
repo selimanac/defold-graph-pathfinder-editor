@@ -33,8 +33,6 @@ local function prepare_for_save()
 			end
 		end
 	end
-
-	pprint(data.nodes)
 end
 
 
@@ -102,7 +100,6 @@ local function main_menu_bar(self)
 				sys.exit(0)
 			end
 
-
 			imgui.end_menu()
 		end
 
@@ -141,18 +138,17 @@ end
 -- =======================================
 -- Window Callback
 -- =======================================
-
 local function window_callback(self, event, data)
 	if event == window.WINDOW_EVENT_FOCUS_LOST then
-		print("window.WINDOW_EVENT_FOCUS_LOST")
+		--	print("window.WINDOW_EVENT_FOCUS_LOST")
 	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
-		print("window.WINDOW_EVENT_FOCUS_GAINED")
+		--print("window.WINDOW_EVENT_FOCUS_GAINED")
 	elseif event == window.WINDOW_EVENT_ICONFIED then
-		print("window.WINDOW_EVENT_ICONFIED")
+		--	print("window.WINDOW_EVENT_ICONFIED")
 	elseif event == window.WINDOW_EVENT_DEICONIFIED then
-		print("window.WINDOW_EVENT_DEICONIFIED")
+		--	print("window.WINDOW_EVENT_DEICONIFIED")
 	elseif event == window.WINDOW_EVENT_RESIZED then
-		print("Window resized: ", data.width, data.height)
+		--	print("Window resized: ", data.width, data.height)
 		imgui.set_display_size(data.width, data.height)
 	end
 end
@@ -160,7 +156,6 @@ end
 -- =======================================
 -- Init
 -- =======================================
-
 function graph_imgui.init()
 	imgui.set_display_size(1920, 1080)
 	imgui.set_ini_filename("graph_editor.ini")
@@ -170,27 +165,11 @@ function graph_imgui.init()
 end
 
 -- =======================================
--- Imgui Update
+-- TOOLS
 -- =======================================
-
-function graph_imgui.update()
-	--	print("want_mouse_input", imgui.want_mouse_input())
-	data.want_mouse_input = imgui.want_mouse_input()
-	main_menu_bar()
-	--imgui.demo()
-
-	imgui.set_next_window_size(180, 250)
-	-- =======================================
-	-- TOOLS
-	-- =======================================
-
+local function tools()
+	imgui.set_next_window_size(180, 350)
 	imgui.begin_window("TOOLS", nil, flags)
-
-	--	data.is_window_hovered = imgui.is_window_hovered()
-	--	data.is_window_focused = imgui.is_window_focused()
-	--	print("data.is_window_hovered", data.is_window_hovered)
-	--	print("is_window_focused", imgui.is_window_focused())
-
 
 	if imgui.radio_button("Add Node", data.editor_state == const.EDITOR_STATES.ADD_NODE) then
 		data.editor_state = const.EDITOR_STATES.ADD_NODE
@@ -209,6 +188,10 @@ function graph_imgui.update()
 		data.editor_state = const.EDITOR_STATES.ADD_EDGE
 	end
 
+	if imgui.radio_button("Add A->B Edge", data.editor_state == const.EDITOR_STATES.ADD_DIRECTIONAL_EDGE) then
+		data.editor_state = const.EDITOR_STATES.ADD_DIRECTIONAL_EDGE
+	end
+
 	imgui.separator()
 
 	if imgui.radio_button("Add Agent", data.editor_state == const.EDITOR_STATES.ADD_AGENT) then
@@ -216,9 +199,12 @@ function graph_imgui.update()
 	end
 
 
+
 	imgui.end_window()
+end
 
 
+local function status()
 	-- =======================================
 	-- STATUS
 	-- =======================================
@@ -228,15 +214,15 @@ function graph_imgui.update()
 	local status_color = data.path.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
 	imgui.text_colored(data.path.status_text, status_color.x, status_color.y, status_color.z, 1)
 
-
 	imgui.text("Projected Path Status: ")
 	imgui.same_line()
 	local status_color = data.projected_path.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
 	imgui.text_colored(data.projected_path.status_text, status_color.x, status_color.y, status_color.z, 1)
 
-
 	imgui.end_window()
+end
 
+local function settings()
 	-- =======================================
 	-- SETTINGS
 	-- =======================================
@@ -413,8 +399,22 @@ function graph_imgui.update()
 		end
 	end
 
-
 	imgui.end_window()
+end
+
+-- =======================================
+-- Imgui Update
+-- =======================================
+
+function graph_imgui.update()
+	--	print("want_mouse_input", imgui.want_mouse_input())
+	data.want_mouse_input = imgui.want_mouse_input()
+	main_menu_bar()
+	--imgui.demo()
+
+	tools()
+	status()
+	settings()
 end
 
 return graph_imgui

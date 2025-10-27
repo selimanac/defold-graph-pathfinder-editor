@@ -40,5 +40,9 @@ embedded_instances {
   "  id: \"agent\"\n"
   "  component: \"/graph_editor/factories/agent.factory\"\n"
   "}\n"
+  "components {\n"
+  "  id: \"direction\"\n"
+  "  component: \"/graph_editor/factories/direction.factory\"\n"
+  "}\n"
   ""
 }

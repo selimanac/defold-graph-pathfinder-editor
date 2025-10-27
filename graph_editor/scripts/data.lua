@@ -5,10 +5,9 @@ data.mouse_position = vmath.vector3(0, 0, 1)
 
 data.nodes = {}
 data.edges = {}
-data.is_window_hovered = false
-data.is_window_focused = false
+--data.is_window_hovered = false
+--data.is_window_focused = false
 data.want_mouse_input = false
-
 data.path_smoothing_id = 0
 
 data.options = {
