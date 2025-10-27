@@ -2,61 +2,78 @@ local const = require("graph_editor.scripts.const")
 local data = require("graph_editor.scripts.data")
 local collision = require("graph_editor.scripts.collision")
 local agents = require("graph_editor.scripts.agents")
-
+-- =======================================
 -- MODULE
+-- =======================================
 local graph = {}
 
--- Variables
+-- =======================================
+-- VARIABLES
+-- =======================================
 local bindings = {}
 local is_moving_node = false
 local selected_node = {}
 local edge_nodes = {}
 local edge_select_count = 0
 
---[[local function rect_from_points(p1, p2)
-	-- Center of rectangle
-	local center = vmath.vector3(
-		(p1.x + p2.x) * 0.5,
-		(p1.y + p2.y) * 0.5,
-		0
-	)
 
-	-- Width and height (absolute difference)
-	local width = math.abs(p2.x - p1.x)
-	local height = math.abs(p2.y - p1.y)
+-- =======================================
+-- FUNCTIONS
+-- =======================================
 
-	return center, width, height
+local function get_edge_positions(from_node_id, to_node_id)
+	local from_v2 = pathfinder.get_node_position(from_node_id)
+	local to_v2 = pathfinder.get_node_position(to_node_id)
+	return vmath.vector3(from_v2.x, from_v2.y, 0), vmath.vector3(to_v2.x, to_v2.y, 0)
 end
 
-local function update_collision_edges(node)
-	for i, edge in pairs(data.edges) do
-		if edge.from_node_id == node.pathfinder_node_id or edge.to_node_id == node.pathfinder_node_id then
-			local from_node_position = pathfinder.get_node_position(edge.from_node_id)
-			local to_node_position = pathfinder.get_node_position(edge.to_node_id)
+local function get_directional_transform(edge)
+	local from, to = get_edge_positions(edge.from_node_id, edge.to_node_id)
+	local center = (from + to) * 0.5
+	local dir = to - from
+	local angle = math.atan2(dir.y, dir.x)
+	center.z = 0.9
 
-			local center, width, height = rect_from_points(from_node_position, to_node_position)
+	return center, angle
+end
 
-			local aabb = {
-				aabb_id = i,
-				position = { x = center.x, y = center.y },
-				size = { width = width, height = height }
-			}
-			collision.update_aabb(aabb)
-		end
-	end
-end]]
+
+local function set_directional_transform(edge)
+	local center, angle = get_directional_transform(edge)
+	go.set_position(center, edge.url)
+	go.set_rotation(vmath.quat_rotation_z(angle - math.pi * 0.5), edge.url)
+end
+
+local function add_edge_directions(edge)
+	local center, angle = get_directional_transform(edge)
+	local direction_url = factory.create(const.FACTORIES.DIRECTION, center, vmath.quat_rotation_z(angle - math.pi * 0.5))
+	-- TODO ADD THIS direction_url
+
+	edge.url = direction_url
+end
+
 
 local function update_node()
 	local node_position = data.mouse_position
 	node_position.z = 0.8
 	go.set_position(node_position, selected_node.url)
 	selected_node.position = data.mouse_position
+end
 
-	--update_collision_edges(selected_node)
+local function get_node_edges(node, bidirectional)
+	local node_edges = {}
+	for _, edge in ipairs(data.edges) do
+		if edge.from_node_id == node.pathfinder_node_id or edge.to_node_id == node.pathfinder_node_id then
+			-- If bidirectional is nil, include all edges
+			if bidirectional == nil or edge.bidirectional == bidirectional then
+				table.insert(node_edges, edge)
+			end
+		end
+	end
+	return node_edges
 end
 
 
--- Functions
 local function move_node()
 	local result, _ = collision.query_mouse_node()
 
@@ -106,40 +123,14 @@ local function add_node(node, loaded_edges)
 					data.edges[key].to_node_id = temp_node.pathfinder_node_id
 				end
 
+
+
 				data.edges[key].bidirectional = loaded_edges[key].bidirectional
 			end
 		end
 	end
 end
 
-
-local function get_edge_positions(from_node_id, to_node_id)
-	local from_v2 = pathfinder.get_node_position(from_node_id)
-	local to_v2 = pathfinder.get_node_position(to_node_id)
-	return vmath.vector3(from_v2.x, from_v2.y, 0), vmath.vector3(to_v2.x, to_v2.y, 0)
-end
-
-local function add_edge_directions(edge)
-	local from, to = get_edge_positions(edge.from_node_id, edge.to_node_id)
-	local center = (from + to) * 0.5
-	local dir = to - from
-	local angle = math.atan2(dir.y, dir.x)
-
-	center.z = 0.9
-	local direction_url = factory.create(const.FACTORIES.DIRECTION, center, vmath.quat_rotation_z(angle - math.pi * 0.5))
-
-
-	--[[for _, edge in ipairs(edges) do
-		if edge.bidirectional == false then
-			local from, to = get_edge_positions(edge.from_node_id, edge.to_node_id)
-			local center = (from + to) * 0.5
-			local dir = to - from
-			local angle = math.atan2(dir.y, dir.x)
-
-			local direction_url = factory.create(const.FACTORIES.DIRECTION, center, vmath.quat_rotation_z(angle - math.pi * 0.5))
-		end
-	end]]
-end
 
 local function add_edge(bidirectional)
 	local is_bidirectional = (bidirectional == nil) and true or bidirectional
@@ -150,25 +141,21 @@ local function add_edge(bidirectional)
 		local node = data.nodes[result[1]]
 
 		edge_select_count = edge_select_count + 1
+		if edge_select_count == 1 then
+			data.action_status = const.EDITOR_STATUS.ADD_EDGE_2
+		end
 		edge_nodes[edge_select_count] = node.pathfinder_node_id
 
 		if edge_nodes[1] == edge_nodes[2] then
-			-- TODO ADD THIS TO IMGUI
-			print("start node and end node is same")
+			data.action_status = const.EDITOR_STATUS.ADD_EDGE_ERROR
 		end
 
 		if edge_select_count == 2 then
+			data.action_status = const.EDITOR_STATUS.ADD_EDGE_1
 			local from_node_id = edge_nodes[1]
 			local to_node_id = edge_nodes[2]
 			pathfinder.add_edge(from_node_id, to_node_id, is_bidirectional)
 
-			--	local from_node_position = pathfinder.get_node_position(from_node_id)
-			--	local to_node_position = pathfinder.get_node_position(to_node_id)
-
-			--	local center, width, height = rect_from_points(from_node_position, to_node_position)
-			--	print(center, width, height)
-			--	local edge_id = collision.insert_aabb(center.x, center.y, width, height, collision.COLLISION_BITS.EDGE)
-			--	print("edge_id", edge_id)
 			edge_select_count = 0
 
 			local edge = { from_node_id = edge_nodes[1], to_node_id = edge_nodes[2], bidirectional = is_bidirectional }
@@ -218,15 +205,6 @@ local function remove_node()
 	end
 end
 
-
--- local function remove_edge()
--- 	local result, result_count = collision.query_mouse_edge()
--- 	if result then
--- 		local edge = data.edges[result[1]]
--- 	end
--- end
-
-
 local function add_agent()
 	agents.add()
 end
@@ -240,7 +218,6 @@ local function add_bindings()
 	-- EDGES
 	bindings[const.EDITOR_STATES.ADD_EDGE] = add_edge
 	bindings[const.EDITOR_STATES.ADD_DIRECTIONAL_EDGE] = add_directional_edge
-	--	bindings[const.EDITOR_STATES.REMOVE_EDGE] = remove_edge
 
 	-- AGENTS
 	bindings[const.EDITOR_STATES.ADD_AGENT] = add_agent
@@ -262,6 +239,11 @@ function graph.input(action_id, action)
 	end
 
 	if is_moving_node then -- moving a node
+		local node_edges = get_node_edges(selected_node, false)
+
+		for index, edge in ipairs(node_edges) do
+			set_directional_transform(edge)
+		end
 		go.set_position(data.mouse_position, selected_node.url)
 	end
 
@@ -287,6 +269,13 @@ function graph.reset()
 	for _, node in pairs(data.nodes) do
 		go.delete(node.url)
 	end
+
+	for index, edge in ipairs(data.edges) do
+		if not edge.bidirectional then
+			go.delete(edge.url)
+		end
+	end
+
 	data.nodes = {}
 	data.edges = {}
 end
@@ -301,6 +290,14 @@ function graph.load(loaded_data)
 		for _, node in pairs(loaded_data.nodes) do
 			add_node(node, loaded_data.edges)
 		end
+
+
+		for index, edge in ipairs(data.edges) do
+			if not edge.bidirectional then
+				add_edge_directions(edge)
+			end
+		end
+		pprint(data.edges)
 		pathfinder.add_edges(data.edges)
 	end)
 end

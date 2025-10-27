@@ -9,6 +9,8 @@ data.edges = {}
 --data.is_window_focused = false
 data.want_mouse_input = false
 data.path_smoothing_id = 0
+data.action_status = ""
+data.stats = {}
 
 data.options = {
 	-- Normal Paths

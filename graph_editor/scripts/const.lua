@@ -40,4 +40,14 @@ const.FILE_STATUS   = {
 	PREPARE      = "...Preparing Data..."
 }
 
+const.EDITOR_STATUS = {
+	ADD_NODE = "Click anywhere to add a node",
+	REMOVE_NODE = "Select a node to remove",
+	MOVE_NODE = "Select a node to move",
+	ADD_EDGE_1 = "Select the first node",
+	ADD_EDGE_2 = "Select the second node to connect",
+	ADD_EDGE_ERROR = "Start node and end node cannot be the same",
+	ADD_AGENT = "Click anywhere to add an agent"
+}
+
 return const

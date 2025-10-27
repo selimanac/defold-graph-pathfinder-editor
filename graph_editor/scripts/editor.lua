@@ -15,8 +15,6 @@ local function get_edge_positions(from_node_id, to_node_id)
 	return vmath.vector3(from_v2.x, from_v2.y, 0), vmath.vector3(to_v2.x, to_v2.y, 0)
 end
 
-
-
 -- Draw all edges in the graph as green lines
 local function draw_edges()
 	for _, edge in ipairs(data.edges) do
@@ -29,9 +27,7 @@ end
 local function draw_path()
 	local smooth_path = data.options.draw_smooth_path and data.path_smoothing_id or nil
 
-
 	data.path.size, data.path.status, data.path.status_text, data.path.path = pathfinder.find_path(data.options.find_path_start_node_id, data.options.find_path_goal_node_id, data.options.find_path_max_path, smooth_path)
-
 
 	if data.path.status == pathfinder.PathStatus.SUCCESS and data.options.draw_path then
 		for i = 1, data.path.size - 1, 1 do
@@ -89,7 +85,7 @@ function editor.update(dt)
 	if data.options.find_projected_path then
 		draw_projected_path()
 	end
-
+	data.stats = pathfinder.get_cache_stats()
 	agents.update(dt)
 end
 

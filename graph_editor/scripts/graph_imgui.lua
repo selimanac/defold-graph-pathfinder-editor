@@ -74,6 +74,47 @@ local function export_lua()
 	-- body
 end
 
+
+-- =======================================
+-- Helpers
+-- =======================================
+
+local function get_key_for_value(t, value)
+	for k, v in pairs(t) do
+		if v == value then return k end
+	end
+	return "Select a Style"
+end
+
+-- =======================================
+-- Window Callback
+-- =======================================
+local function window_callback(self, event, data)
+	if event == window.WINDOW_EVENT_FOCUS_LOST then
+		--	print("window.WINDOW_EVENT_FOCUS_LOST")
+	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
+		--print("window.WINDOW_EVENT_FOCUS_GAINED")
+	elseif event == window.WINDOW_EVENT_ICONFIED then
+		--	print("window.WINDOW_EVENT_ICONFIED")
+	elseif event == window.WINDOW_EVENT_DEICONIFIED then
+		--	print("window.WINDOW_EVENT_DEICONIFIED")
+	elseif event == window.WINDOW_EVENT_RESIZED then
+		--	print("Window resized: ", data.width, data.height)
+		imgui.set_display_size(data.width, data.height)
+	end
+end
+
+-- =======================================
+-- Init
+-- =======================================
+function graph_imgui.init()
+	imgui.set_display_size(1920, 1080)
+	imgui.set_ini_filename("graph_editor.ini")
+	style.set()
+
+	window.set_listener(window_callback)
+end
+
 -- =======================================
 -- Main Menu
 -- =======================================
@@ -125,46 +166,6 @@ local function main_menu_bar(self)
 end
 
 -- =======================================
--- Helpers
--- =======================================
-
-local function get_key_for_value(t, value)
-	for k, v in pairs(t) do
-		if v == value then return k end
-	end
-	return "Select a Style"
-end
-
--- =======================================
--- Window Callback
--- =======================================
-local function window_callback(self, event, data)
-	if event == window.WINDOW_EVENT_FOCUS_LOST then
-		--	print("window.WINDOW_EVENT_FOCUS_LOST")
-	elseif event == window.WINDOW_EVENT_FOCUS_GAINED then
-		--print("window.WINDOW_EVENT_FOCUS_GAINED")
-	elseif event == window.WINDOW_EVENT_ICONFIED then
-		--	print("window.WINDOW_EVENT_ICONFIED")
-	elseif event == window.WINDOW_EVENT_DEICONIFIED then
-		--	print("window.WINDOW_EVENT_DEICONIFIED")
-	elseif event == window.WINDOW_EVENT_RESIZED then
-		--	print("Window resized: ", data.width, data.height)
-		imgui.set_display_size(data.width, data.height)
-	end
-end
-
--- =======================================
--- Init
--- =======================================
-function graph_imgui.init()
-	imgui.set_display_size(1920, 1080)
-	imgui.set_ini_filename("graph_editor.ini")
-	style.set()
-
-	window.set_listener(window_callback)
-end
-
--- =======================================
 -- TOOLS
 -- =======================================
 local function tools()
@@ -173,32 +174,39 @@ local function tools()
 
 	if imgui.radio_button("Add Node", data.editor_state == const.EDITOR_STATES.ADD_NODE) then
 		data.editor_state = const.EDITOR_STATES.ADD_NODE
+		data.action_status = const.EDITOR_STATUS.ADD_NODE
 	end
+
 	if imgui.radio_button("Remove Node", data.editor_state == const.EDITOR_STATES.REMOVE_NODE) then
 		data.editor_state = const.EDITOR_STATES.REMOVE_NODE
+		data.action_status = const.EDITOR_STATUS.REMOVE_NODE
 	end
 
 	if imgui.radio_button("Move Node", data.editor_state == const.EDITOR_STATES.MOVE_NODE) then
 		data.editor_state = const.EDITOR_STATES.MOVE_NODE
+		data.action_status = const.EDITOR_STATUS.MOVE_NODE
 	end
 
 	imgui.separator()
 
 	if imgui.radio_button("Add Edge", data.editor_state == const.EDITOR_STATES.ADD_EDGE) then
 		data.editor_state = const.EDITOR_STATES.ADD_EDGE
+		data.action_status = const.EDITOR_STATUS.ADD_EDGE_1
 	end
 
 	if imgui.radio_button("Add A->B Edge", data.editor_state == const.EDITOR_STATES.ADD_DIRECTIONAL_EDGE) then
 		data.editor_state = const.EDITOR_STATES.ADD_DIRECTIONAL_EDGE
+		data.action_status = const.EDITOR_STATUS.ADD_EDGE_1
 	end
 
 	imgui.separator()
 
 	if imgui.radio_button("Add Agent", data.editor_state == const.EDITOR_STATES.ADD_AGENT) then
 		data.editor_state = const.EDITOR_STATES.ADD_AGENT
+		data.action_status = const.EDITOR_STATUS.ADD_AGENT
 	end
 
-
+	imgui.separator()
 
 	imgui.end_window()
 end
@@ -208,7 +216,13 @@ local function status()
 	-- =======================================
 	-- STATUS
 	-- =======================================
+	imgui.set_next_window_size(560, 100)
 	imgui.begin_window("STATUS", nil, flags)
+
+	imgui.text("Editor Status: ")
+	imgui.same_line()
+	imgui.text_colored(data.action_status, 0, 1, 0, 1)
+
 	imgui.text("Path Status: ")
 	imgui.same_line()
 	local status_color = data.path.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
@@ -222,11 +236,33 @@ local function status()
 	imgui.end_window()
 end
 
+local function stats()
+	-- =======================================
+	-- STATUS
+	-- =======================================
+	imgui.set_next_window_size(560, 100)
+	imgui.begin_window("STATS", nil, flags)
+
+	if data.stats.path_cache then
+		imgui.text("Current Entries: " .. data.stats.path_cache.current_entries .. " Max Capacity: " .. data.stats.path_cache.max_capacity .. " Hit Rate: " .. data.stats.path_cache.hit_rate .. "%")
+	end
+
+	if data.stats.distance_cache then
+		imgui.text("Current Entries: " .. data.stats.distance_cache.current_size .. "  Hit Count: " .. data.stats.distance_cache.hit_count .. " Miss Count: " .. data.stats.distance_cache.miss_count .. " Hit Rate: " .. data.stats.distance_cache.hit_rate .. "%")
+	end
+
+	imgui.separator()
+
+	imgui.text_colored("Cache results are mixed. It's always better to test one path at a time!", 1, 0, 0, 1)
+
+	imgui.end_window()
+end
+
 local function settings()
 	-- =======================================
 	-- SETTINGS
 	-- =======================================
-
+	imgui.set_next_window_size(475, 755)
 	imgui.begin_window("SETTINGS", nil, flags)
 	--print(imgui.is_window_focused())
 	data.is_window_hovered = imgui.is_window_hovered()
@@ -415,6 +451,7 @@ function graph_imgui.update()
 	tools()
 	status()
 	settings()
+	stats()
 end
 
 return graph_imgui
