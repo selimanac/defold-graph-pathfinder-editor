@@ -17,30 +17,30 @@ local agent_states = {
 
 local EPSILON = 0.0001
 
-
-
-
 function agents.add()
-	--[[	if data.projected_path == path_goal_node_id then
-		return
-	end]]
+	if ((data.agent_mode == const.AGEND_MODE.FIND_PROJECTED_PATH and data.projected_path.status ~= pathfinder.PathStatus.SUCCESS) or (data.agent_mode == const.AGEND_MODE.FIND_PATH and data.path.status ~= pathfinder.PathStatus.SUCCESS)) then
+		data.action_status = const.EDITOR_STATUS.NO_PATH_FOR_AGENT
 
-	if data.projected_path.status ~= pathfinder.PathStatus.SUCCESS then
+		timer.delay(1.5, false, function()
+			data.action_status = const.EDITOR_STATUS.ADD_AGENT
+		end)
 		return
 	end
 
+	local path = data.agent_mode == const.AGEND_MODE.FIND_PROJECTED_PATH and data.projected_path.path or data.path.path
+	local path_size = data.agent_mode == const.AGEND_MODE.FIND_PROJECTED_PATH and data.projected_path.size or data.path.size
+	local initial_posiiton = data.agent_mode == const.AGEND_MODE.FIND_PROJECTED_PATH and data.mouse_position or vmath.vector3(data.path.path[1].x, data.path.path[1].y, 0.9)
 
 	local agent = {
-		position            = data.mouse_position,
+		position            = initial_posiiton,
 		velocity            = vmath.vector3(),
 		max_speed           = 300,
 		speed               = 0,
 		rotation            = 0,
-		path                = data.projected_path.path,
-		path_entry_point    = data.projected_path.entry_point,
-		path_size           = data.projected_path.size,
+		path                = path,
+		path_size           = path_size,
 		current_waypoint_id = 1,
-		instance            = factory.create(const.FACTORIES.AGENT, data.mouse_position),
+		instance            = factory.create(const.FACTORIES.AGENT, initial_posiiton),
 		state               = agent_states.ACTIVE,
 		id                  = 0
 	}

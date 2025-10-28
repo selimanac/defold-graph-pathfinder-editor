@@ -12,6 +12,7 @@ local changed        = false
 local checked        = false
 local int_value      = 0
 local float_value    = 0.0
+local x, y, z        = 0.0, 0.0, 0.0
 
 local save_load_text = ""
 -- =======================================
@@ -35,13 +36,11 @@ local function prepare_for_save()
 	end
 end
 
-
 local function save()
 	save_load_text = const.FILE_STATUS.SAVE_SUCCESS
 	prepare_for_save()
 
-
-	local filename = sys.get_save_file("defold-graph-pathfinder-editor", "editor")
+	local filename = sys.get_save_file(const.PROJECT_NAME, "editor")
 	local loaded_data = sys.save(filename, { nodes = data.nodes, edges = data.edges })
 
 	save_load_text = loaded_data and const.FILE_STATUS.SAVE_SUCCESS or const.FILE_STATUS.SAVE_ERROR
@@ -211,11 +210,11 @@ local function tools()
 	imgui.end_window()
 end
 
+-- =======================================
+-- STATUS
+-- =======================================
 
 local function status()
-	-- =======================================
-	-- STATUS
-	-- =======================================
 	imgui.set_next_window_size(560, 100)
 	imgui.begin_window("STATUS", nil, flags)
 
@@ -236,10 +235,12 @@ local function status()
 	imgui.end_window()
 end
 
+
+-- =======================================
+-- STATS
+-- =======================================
+
 local function stats()
-	-- =======================================
-	-- STATUS
-	-- =======================================
 	imgui.set_next_window_size(560, 100)
 	imgui.begin_window("STATS", nil, flags)
 
@@ -258,15 +259,64 @@ local function stats()
 	imgui.end_window()
 end
 
+-- =======================================
+-- NODE
+-- =======================================
+local function node()
+	if not data.is_node_selected then
+		return
+	end
+
+	imgui.set_next_window_size(400, 175)
+	imgui.begin_window("NODE", nil)
+
+	imgui.text("Pathfinder Node ID: " .. data.selected_node.pathfinder_node_id)
+	imgui.text("AABB ID: " .. data.selected_node.aabb_id)
+	imgui.text("URL: " .. data.selected_node.url)
+	imgui.set_next_item_width(250)
+
+	changed, x, y, z = imgui.input_float3("Position", data.selected_node.position.x, data.selected_node.position.y, data.selected_node.position.z)
+	if changed then
+		data.selected_node.position.x = x
+		data.selected_node.position.y = y
+		data.selected_node.position.z = 0.8
+
+		graph.move_selected_node(data.selected_node.position)
+		graph.update_node(data.selected_node.position)
+	end
+
+
+	imgui.end_window()
+end
+
+-- =======================================
+-- SETTINGS
+-- =======================================
 local function settings()
-	-- =======================================
-	-- SETTINGS
-	-- =======================================
 	imgui.set_next_window_size(475, 755)
-	imgui.begin_window("SETTINGS", nil, flags)
-	--print(imgui.is_window_focused())
+	imgui.begin_window("SETTINGS", nil)
+
 	data.is_window_hovered = imgui.is_window_hovered()
 
+	imgui.text_colored("-> AGENT MODE", 1, 0, 0, 1)
+	imgui.separator()
+
+	local agent_mode_label = ""
+	if data.agent_mode == const.AGEND_MODE.FIND_PATH then
+		agent_mode_label = const.EDITOR_STATUS.AGEND_MODE_FIND_PATH_LABEL
+	else
+		agent_mode_label = const.EDITOR_STATUS.AGEND_MODE_FIND_PROJECTED_PATH_LABEL
+	end
+
+	if imgui.button(agent_mode_label) then
+		if data.agent_mode == const.AGEND_MODE.FIND_PATH then
+			data.agent_mode = const.AGEND_MODE.FIND_PROJECTED_PATH
+		else
+			data.agent_mode = const.AGEND_MODE.FIND_PATH
+		end
+	end
+
+	imgui.text("\n")
 	imgui.text_colored("-> PATHS", 1, 0, 0, 1)
 	imgui.separator()
 
@@ -314,7 +364,7 @@ local function settings()
 		data.options.find_projected_path_max_path = int_value
 	end
 
-	imgui.separator()
+	imgui.text("\n")
 	imgui.text_colored("-> DRAW", 1, 0, 0, 1)
 	imgui.separator()
 
@@ -359,7 +409,7 @@ local function settings()
 		data.options.draw_projected_smooth_path = checked
 	end
 
-	imgui.separator()
+	imgui.text("\n")
 	imgui.text_colored("-> SHOOTHING", 1, 0, 0, 1)
 	imgui.separator()
 
@@ -446,12 +496,13 @@ function graph_imgui.update()
 	--	print("want_mouse_input", imgui.want_mouse_input())
 	data.want_mouse_input = imgui.want_mouse_input()
 	main_menu_bar()
-	--imgui.demo()
+	imgui.demo()
 
 	tools()
 	status()
 	settings()
 	stats()
+	node()
 end
 
 return graph_imgui

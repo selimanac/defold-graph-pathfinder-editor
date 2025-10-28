@@ -1,3 +1,5 @@
+local const = require("graph_editor.scripts.const")
+
 local data = {}
 
 data.editor_state = 0
@@ -10,6 +12,10 @@ data.edges = {}
 data.want_mouse_input = false
 data.path_smoothing_id = 0
 data.action_status = ""
+data.is_node_selected = false
+data.selected_node = {}
+data.agent_mode = const.AGEND_MODE.FIND_PROJECTED_PATH
+
 data.stats = {}
 
 data.options = {
@@ -47,14 +53,14 @@ data.options = {
 
 data.path = {
 	size = 0,
-	status = 0,
+	status = -100,
 	status_text = "",
 	path = {}
 }
 
 data.projected_path = {
 	size = 0,
-	status = 0,
+	status = -100,
 	status_text = "",
 	entry_point = vmath.vector3(),
 	path = {}

@@ -11,15 +11,24 @@ local graph = {}
 -- VARIABLES
 -- =======================================
 local bindings = {}
-local is_moving_node = false
-local selected_node = {}
 local edge_nodes = {}
 local edge_select_count = 0
-
+local is_node_moving = false
 
 -- =======================================
--- FUNCTIONS
+-- UTILS
 -- =======================================
+
+function graph.set_nodes_visiblity()
+	local status = data.options.draw_nodes and "enable" or "disable"
+	for _, node in pairs(data.nodes) do
+		msg.post(node.url, status)
+	end
+end
+
+function graph.update_smooth_config()
+	pathfinder.update_path_smoothing(data.path_smoothing_id, data.options.smoothing_config)
+end
 
 local function get_edge_positions(from_node_id, to_node_id)
 	local from_v2 = pathfinder.get_node_position(from_node_id)
@@ -37,7 +46,6 @@ local function get_directional_transform(edge)
 	return center, angle
 end
 
-
 local function set_directional_transform(edge)
 	local center, angle = get_directional_transform(edge)
 	go.set_position(center, edge.url)
@@ -52,19 +60,11 @@ local function add_edge_directions(edge)
 	edge.url = direction_url
 end
 
-
-local function update_node()
-	local node_position = data.mouse_position
-	node_position.z = 0.8
-	go.set_position(node_position, selected_node.url)
-	selected_node.position = data.mouse_position
-end
-
+-- This is expensive
 local function get_node_edges(node, bidirectional)
 	local node_edges = {}
 	for _, edge in ipairs(data.edges) do
 		if edge.from_node_id == node.pathfinder_node_id or edge.to_node_id == node.pathfinder_node_id then
-			-- If bidirectional is nil, include all edges
 			if bidirectional == nil or edge.bidirectional == bidirectional then
 				table.insert(node_edges, edge)
 			end
@@ -73,15 +73,57 @@ local function get_node_edges(node, bidirectional)
 	return node_edges
 end
 
+local function remove_node_edges(node)
+	local edges_to_remove = {}
+
+	for i, edge in ipairs(data.edges) do
+		if edge.from_node_id == node.pathfinder_node_id or edge.to_node_id == node.pathfinder_node_id then
+			pathfinder.remove_edge(edge.from_node_id, edge.to_node_id, edge.bidirectional)
+			--	collision.remove(i)
+			table.insert(edges_to_remove, i)
+		end
+	end
+
+	-- remove from the end to avoid index shifting
+	for i = #edges_to_remove, 1, -1 do
+		table.remove(data.edges, edges_to_remove[i])
+	end
+end
+
+function graph.move_selected_node(position)
+	local node_edges = get_node_edges(data.selected_node, false)
+
+	for _, edge in ipairs(node_edges) do
+		set_directional_transform(edge)
+	end
+	position.z = 0.8
+	data.selected_node.position = position
+	go.set_position(position, data.selected_node.url)
+end
+
+function graph.update_node(node_position)
+	node_position.z = 0.8
+	data.selected_node.position = node_position
+	go.set_position(node_position, data.selected_node.url)
+
+	is_node_moving = false
+end
+
+-- =======================================
+-- FUNCTIONS
+-- =======================================
 
 local function move_node()
 	local result, _ = collision.query_mouse_node()
 
 	if result then
-		selected_node = data.nodes[result[1]]
-		is_moving_node = true
+		data.selected_node    = data.nodes[result[1]]
+		data.is_node_selected = true
+		is_node_moving        = true
 	else
-		is_moving_node = false
+		data.selected_node    = {}
+		data.is_node_selected = false
+		is_node_moving        = false
 	end
 end
 
@@ -122,8 +164,6 @@ local function add_node(node, loaded_edges)
 				if edge.to_node_id then
 					data.edges[key].to_node_id = temp_node.pathfinder_node_id
 				end
-
-
 
 				data.edges[key].bidirectional = loaded_edges[key].bidirectional
 			end
@@ -174,23 +214,6 @@ local function add_directional_edge()
 	add_edge(false)
 end
 
-local function remove_node_edges(node)
-	local edges_to_remove = {}
-
-	for i, edge in ipairs(data.edges) do
-		if edge.from_node_id == node.pathfinder_node_id or edge.to_node_id == node.pathfinder_node_id then
-			pathfinder.remove_edge(edge.from_node_id, edge.to_node_id, edge.bidirectional)
-			--	collision.remove(i)
-			table.insert(edges_to_remove, i)
-		end
-	end
-
-	-- remove from the end to avoid index shifting
-	for i = #edges_to_remove, 1, -1 do
-		table.remove(data.edges, edges_to_remove[i])
-	end
-end
-
 local function remove_node()
 	local result, result_count = collision.query_mouse_node()
 
@@ -209,22 +232,36 @@ local function add_agent()
 	agents.add()
 end
 
+-- local function select_node()
+-- 	local result, _ = collision.query_mouse_node()
+
+-- 	if result then
+-- 		data.selected_node = data.nodes[result[1]]
+-- 		data.node_selected = true
+-- 		pprint(data.selected_node)
+-- 	else
+-- 		data.selected_node = {}
+-- 		data.is_node_selected = false
+-- 	end
+-- end
+
 local function add_bindings()
 	-- NODES
-	bindings[const.EDITOR_STATES.ADD_NODE] = add_node
-	bindings[const.EDITOR_STATES.MOVE_NODE] = move_node
-	bindings[const.EDITOR_STATES.REMOVE_NODE] = remove_node
+	-- bindings[const.EDITOR_STATES.SELECT_NODE]          = select_node
+	bindings[const.EDITOR_STATES.ADD_NODE]             = add_node
+	bindings[const.EDITOR_STATES.MOVE_NODE]            = move_node
+	bindings[const.EDITOR_STATES.REMOVE_NODE]          = remove_node
 
 	-- EDGES
-	bindings[const.EDITOR_STATES.ADD_EDGE] = add_edge
+	bindings[const.EDITOR_STATES.ADD_EDGE]             = add_edge
 	bindings[const.EDITOR_STATES.ADD_DIRECTIONAL_EDGE] = add_directional_edge
 
 	-- AGENTS
-	bindings[const.EDITOR_STATES.ADD_AGENT] = add_agent
+	bindings[const.EDITOR_STATES.ADD_AGENT]            = add_agent
 end
 
 function graph.init()
-	print("Graph Init")
+	data.action_status = const.EDITOR_STATUS.READY
 	collision.init()
 	add_bindings()
 
@@ -238,19 +275,12 @@ function graph.input(action_id, action)
 		return
 	end
 
-	if is_moving_node then -- moving a node
-		local node_edges = get_node_edges(selected_node, false)
-
-		for index, edge in ipairs(node_edges) do
-			set_directional_transform(edge)
-		end
-		go.set_position(data.mouse_position, selected_node.url)
+	if data.is_node_selected and is_node_moving then -- moving a node
+		graph.move_selected_node(data.mouse_position)
 	end
 
-	if action_id == const.TRIGGERS.MOUSE_BUTTON_LEFT and action.released and is_moving_node then
-		update_node()
-		is_moving_node = false
-		selected_node = {}
+	if action_id == const.TRIGGERS.MOUSE_BUTTON_LEFT and action.released and data.is_node_selected then
+		graph.update_node(data.mouse_position)
 	end
 
 	if action_id == const.TRIGGERS.MOUSE_BUTTON_LEFT and action.pressed then
@@ -262,7 +292,7 @@ function graph.input(action_id, action)
 end
 
 function graph.reset()
-	print("RESET")
+	data.action_status = const.EDITOR_STATUS.RESET
 	collision.reset()
 	pathfinder.shutdown()
 
@@ -278,10 +308,12 @@ function graph.reset()
 
 	data.nodes = {}
 	data.edges = {}
+
+	data.action_status = const.EDITOR_STATUS.READY
 end
 
 function graph.load(loaded_data)
-	print("LOAD")
+	data.action_status = const.EDITOR_STATUS.LOADING
 	graph.reset()
 	graph.init()
 
@@ -297,20 +329,11 @@ function graph.load(loaded_data)
 				add_edge_directions(edge)
 			end
 		end
-		pprint(data.edges)
+
 		pathfinder.add_edges(data.edges)
 	end)
-end
 
-function graph.set_nodes_visiblity()
-	local status = data.options.draw_nodes and "enable" or "disable"
-	for _, node in pairs(data.nodes) do
-		msg.post(node.url, status)
-	end
-end
-
-function graph.update_smooth_config()
-	pathfinder.update_path_smoothing(data.path_smoothing_id, data.options.smoothing_config)
+	data.action_status = const.EDITOR_STATUS.READY
 end
 
 return graph

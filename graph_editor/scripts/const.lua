@@ -7,9 +7,11 @@ const.EDITOR_STATES = {
 	ADD_EDGE             = 4,
 	REMOVE_EDGE          = 5,
 	ADD_AGENT            = 6,
-	ADD_DIRECTIONAL_EDGE = 7
+	ADD_DIRECTIONAL_EDGE = 7,
+	--SELECT_NODE          = 8
 }
 
+const.PROJECT_NAME  = sys.get_config_string("project.title", "defold-graph-pathfinder-editor")
 const.CAMERA        = "/graph_editor/camera#camera"
 const.MOUSE         = "/graph_editor/mouse"
 const.TRIGGERS      = {
@@ -41,13 +43,25 @@ const.FILE_STATUS   = {
 }
 
 const.EDITOR_STATUS = {
-	ADD_NODE = "Click anywhere to add a node",
-	REMOVE_NODE = "Select a node to remove",
-	MOVE_NODE = "Select a node to move",
-	ADD_EDGE_1 = "Select the first node",
-	ADD_EDGE_2 = "Select the second node to connect",
-	ADD_EDGE_ERROR = "Start node and end node cannot be the same",
-	ADD_AGENT = "Click anywhere to add an agent"
+	ADD_NODE                             = "Click anywhere to add a node",
+	REMOVE_NODE                          = "Select a node to remove",
+	MOVE_NODE                            = "Select a node to move",
+	ADD_EDGE_1                           = "Select the first node",
+	ADD_EDGE_2                           = "Select the second node to connect",
+	ADD_EDGE_ERROR                       = "Start node and end node cannot be the same",
+	ADD_AGENT                            = "Click anywhere to add an agent",
+	READY                                = "READY",
+	SELECT_NODE                          = "Click to select a node",
+	LOADING                              = "LOADING",
+	RESET                                = "RESET",
+	AGEND_MODE_FIND_PATH_LABEL           = "FIND PATH",
+	AGEND_MODE_FIND_PROJECTED_PATH_LABEL = "FIND PROJECTED PATH",
+	NO_PATH_FOR_AGENT                    = "No valid path for agent"
+}
+
+const.AGEND_MODE    = {
+	FIND_PATH = 1,
+	FIND_PROJECTED_PATH = 2
 }
 
 return const
