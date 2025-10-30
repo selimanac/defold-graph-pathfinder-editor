@@ -9,12 +9,6 @@ function update(self, dt)
 	editor.update(dt)
 end
 
-function on_message(self, message_id, message, sender)
-	-- Add message-handling code here
-	-- Learn more: https://defold.com/manuals/message-passing/
-	-- Remove this function if not needed
-end
-
 function on_input(self, action_id, action)
 	editor.input(action_id, action)
 end

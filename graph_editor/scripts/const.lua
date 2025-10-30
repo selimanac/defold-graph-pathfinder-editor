@@ -60,8 +60,17 @@ const.EDITOR_STATUS = {
 }
 
 const.AGEND_MODE    = {
-	FIND_PATH = 1,
-	FIND_PROJECTED_PATH = 2
+	NODE_TO_NODE           = 1,
+	PROJECTED_TO_NODE      = 2,
+	NODE_TO_PROJECTED      = 3,
+	PROJECTED_TO_PROJECTED = 4
+}
+
+const.AGENT_TO_PATH = {
+	"node_to_node",
+	"projected_to_node",
+	"node_to_projected",
+	"projected_to_projected"
 }
 
 return const

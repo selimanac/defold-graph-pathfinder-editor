@@ -16,7 +16,7 @@ local edge_select_count = 0
 local is_node_moving = false
 
 -- =======================================
--- UTILS
+-- UTIL FUNCS
 -- =======================================
 
 function graph.set_nodes_visiblity()
@@ -55,8 +55,6 @@ end
 local function add_edge_directions(edge)
 	local center, angle = get_directional_transform(edge)
 	local direction_url = factory.create(const.FACTORIES.DIRECTION, center, vmath.quat_rotation_z(angle - math.pi * 0.5))
-	-- TODO ADD THIS direction_url
-
 	edge.url = direction_url
 end
 
@@ -70,6 +68,8 @@ local function get_node_edges(node, bidirectional)
 			end
 		end
 	end
+	-- local node_edges = pathfinder.get_node_edges(node.pathfinder_node_id, bidirectional)
+
 	return node_edges
 end
 
@@ -79,7 +79,11 @@ local function remove_node_edges(node)
 	for i, edge in ipairs(data.edges) do
 		if edge.from_node_id == node.pathfinder_node_id or edge.to_node_id == node.pathfinder_node_id then
 			pathfinder.remove_edge(edge.from_node_id, edge.to_node_id, edge.bidirectional)
-			--	collision.remove(i)
+
+			if edge.url then
+				go.delete(edge.url)
+			end
+
 			table.insert(edges_to_remove, i)
 		end
 	end
@@ -141,16 +145,17 @@ local function add_node(node, loaded_edges)
 	label_url.fragment = "node_id"
 
 	local temp_node = {
-		id = 0, -- not using this
 		position = node_position,
 		aabb_id = collision.insert_gameobject(node_url, 16, 16, collision.COLLISION_BITS.NODE),
 		pathfinder_node_id = pathfinder.add_gameobject_node(node_url),
 		url = node_url,
-		edges = {}
+		edges = {},
+		directions = {}
 	}
 	label.set_text(label_url, temp_node.pathfinder_node_id)
 	table.insert(data.nodes, temp_node.aabb_id, temp_node)
 
+	-- From Loaded
 	if node then
 		if node.edges then
 			for key, edge in pairs(node.edges) do
@@ -232,22 +237,8 @@ local function add_agent()
 	agents.add()
 end
 
--- local function select_node()
--- 	local result, _ = collision.query_mouse_node()
-
--- 	if result then
--- 		data.selected_node = data.nodes[result[1]]
--- 		data.node_selected = true
--- 		pprint(data.selected_node)
--- 	else
--- 		data.selected_node = {}
--- 		data.is_node_selected = false
--- 	end
--- end
-
 local function add_bindings()
 	-- NODES
-	-- bindings[const.EDITOR_STATES.SELECT_NODE]          = select_node
 	bindings[const.EDITOR_STATES.ADD_NODE]             = add_node
 	bindings[const.EDITOR_STATES.MOVE_NODE]            = move_node
 	bindings[const.EDITOR_STATES.REMOVE_NODE]          = remove_node
@@ -300,7 +291,7 @@ function graph.reset()
 		go.delete(node.url)
 	end
 
-	for index, edge in ipairs(data.edges) do
+	for _, edge in ipairs(data.edges) do
 		if not edge.bidirectional then
 			go.delete(edge.url)
 		end
@@ -323,8 +314,7 @@ function graph.load(loaded_data)
 			add_node(node, loaded_data.edges)
 		end
 
-
-		for index, edge in ipairs(data.edges) do
+		for _, edge in ipairs(data.edges) do
 			if not edge.bidirectional then
 				add_edge_directions(edge)
 			end

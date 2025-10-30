@@ -1,13 +1,17 @@
-local data = require("graph_editor.scripts.data")
-local const = require("graph_editor.scripts.const")
+local data            = require("graph_editor.scripts.data")
+local const           = require("graph_editor.scripts.const")
 
-local agents = {}
+-- =======================================
+-- MODULE
+-- =======================================
+local agents          = {}
 
+-- =======================================
+-- VARIABLES
+-- =======================================
 local agent_container = {}
-local agent_count = 1
-
-
-local agent_states = {
+local EPSILON         = 0.0001
+local agent_states    = {
 	INACTIVE   = 0, -- Not in navigation system
 	ACTIVE     = 1, -- Following path
 	PAUSED     = 2, -- Paused by application
@@ -15,21 +19,37 @@ local agent_states = {
 	ARRIVED    = 4 -- Reached goal
 }
 
-local EPSILON = 0.0001
-
 function agents.add()
-	if ((data.agent_mode == const.AGEND_MODE.FIND_PROJECTED_PATH and data.projected_path.status ~= pathfinder.PathStatus.SUCCESS) or (data.agent_mode == const.AGEND_MODE.FIND_PATH and data.path.status ~= pathfinder.PathStatus.SUCCESS)) then
+	local path = data.path[const.AGENT_TO_PATH[data.agent_mode]].path
+	local path_status = data.path[const.AGENT_TO_PATH[data.agent_mode]].status
+	print("path_status", path_status)
+	if path_status = pathfinder.PathStatus.SUCCESS then
 		data.action_status = const.EDITOR_STATUS.NO_PATH_FOR_AGENT
 
 		timer.delay(1.5, false, function()
 			data.action_status = const.EDITOR_STATUS.ADD_AGENT
 		end)
+
 		return
 	end
+	local path_size = data.path[const.AGENT_TO_PATH[data.agent_mode]].size
 
-	local path = data.agent_mode == const.AGEND_MODE.FIND_PROJECTED_PATH and data.projected_path.path or data.path.path
-	local path_size = data.agent_mode == const.AGEND_MODE.FIND_PROJECTED_PATH and data.projected_path.size or data.path.size
-	local initial_posiiton = data.agent_mode == const.AGEND_MODE.FIND_PROJECTED_PATH and data.mouse_position or vmath.vector3(data.path.path[1].x, data.path.path[1].y, 0.9)
+	local initial_posiiton = vmath.vector3(0.9)
+
+	if data.agent_mode == const.AGEND_MODE.NODE_TO_NODE or data.agent_mode == const.AGEND_MODE.NODE_TO_PROJECTED then
+		initial_posiiton.x = path[1].x
+		initial_posiiton.y = path[1].y
+	end
+
+	if data.agent_mode == const.AGEND_MODE.PROJECTED_TO_NODE then
+		initial_posiiton.x = data.mouse_position.x
+		initial_posiiton.y = data.mouse_position.y
+	end
+
+	if data.agent_mode == const.AGEND_MODE.PROJECTED_TO_PROJECTED then
+		initial_posiiton.x = data.options.projected_to_projected.start_position.x
+		initial_posiiton.y = data.options.projected_to_projected.start_position.y
+	end
 
 	local agent = {
 		position            = initial_posiiton,

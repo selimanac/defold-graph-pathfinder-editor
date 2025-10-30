@@ -20,7 +20,7 @@ local save_load_text = ""
 -- =======================================
 
 local function prepare_for_save()
-	for key, node in pairs(data.nodes) do
+	for _, node in pairs(data.nodes) do
 		for i, edge in ipairs(data.edges) do
 			if edge.from_node_id == node.pathfinder_node_id or edge.to_node_id == node.pathfinder_node_id then
 				node.edges[i] = {}
@@ -66,7 +66,28 @@ local function load()
 end
 
 local function export_json()
-	-- body
+	local temp_nodes = {}
+	for _, node in pairs(data.nodes) do
+		local temp_node = { x = node.position.x, y = node.position.y }
+		table.insert(temp_nodes, temp_node)
+	end
+	local data_table = json.encode(temp_nodes)
+	pprint(data_table)
+
+
+	local temp_edges = {}
+	for _, edge in ipairs(data.edges) do
+		local temp_edge = {
+			from_node_id = edge.from_node_id,
+			to_node_id = edge.to_node_id,
+			bidirectional = edge.bidirectional
+		}
+		table.insert(temp_edges, temp_edge)
+	end
+
+	local data_table = json.encode(temp_edges)
+
+	pprint(data_table)
 end
 
 local function export_lua()
@@ -112,6 +133,14 @@ function graph_imgui.init()
 	style.set()
 
 	window.set_listener(window_callback)
+
+	local map = {
+		filename = "level_1"
+	}
+	table.insert(data.maps, map)
+	local path = sys.get_application_path()
+
+	print(path)
 end
 
 -- =======================================
@@ -120,23 +149,23 @@ end
 local function main_menu_bar(self)
 	if imgui.begin_main_menu_bar() then
 		if imgui.begin_menu("File") then
-			if imgui.menu_item("Load", "Ctrl+L") then
+			if imgui.menu_item("Load", nil) then
 				load()
 			end
 
-			if imgui.menu_item("Save", "Ctrl+S") then
+			if imgui.menu_item("Save", nil) then
 				save()
 			end
 
-			if imgui.menu_item("Export JSON", "Ctrl+J") then
+			if imgui.menu_item("Export JSON", nil) then
 				export_json()
 			end
 
-			if imgui.menu_item("Export LUA", "Ctrl+L") then
+			if imgui.menu_item("Export LUA", nil) then
 				export_lua()
 			end
 
-			if imgui.menu_item("Quit", "Ctrl+Q") then
+			if imgui.menu_item("Quit", nil) then
 				sys.exit(0)
 			end
 
@@ -144,10 +173,33 @@ local function main_menu_bar(self)
 		end
 
 		if imgui.begin_menu("Edit") then
-			local clicked = imgui.menu_item("Reset", nil, nil)
-			if clicked then
+			if imgui.menu_item("Reset", nil) then
 				graph.reset()
 				graph.init()
+			end
+
+			imgui.end_menu()
+		end
+
+		if imgui.begin_menu("View") then
+			local clicked, selected = imgui.menu_item("Nodes", nil, data.options.draw.nodes)
+			if clicked then
+				data.options.draw.nodes = selected
+			end
+
+			local clicked, selected = imgui.menu_item("Edges", nil, data.options.draw.edges)
+			if clicked then
+				data.options.draw.edges = selected
+			end
+
+			local clicked, selected = imgui.menu_item("Paths", nil, data.options.draw.paths)
+			if clicked then
+				data.options.draw.paths = selected
+			end
+
+			local clicked, selected = imgui.menu_item("Smooth Paths", nil, data.options.draw.smooth_path)
+			if clicked then
+				data.options.draw.smooth_path = selected
 			end
 
 			imgui.end_menu()
@@ -210,30 +262,7 @@ local function tools()
 	imgui.end_window()
 end
 
--- =======================================
--- STATUS
--- =======================================
 
-local function status()
-	imgui.set_next_window_size(560, 100)
-	imgui.begin_window("STATUS", nil, flags)
-
-	imgui.text("Editor Status: ")
-	imgui.same_line()
-	imgui.text_colored(data.action_status, 0, 1, 0, 1)
-
-	imgui.text("Path Status: ")
-	imgui.same_line()
-	local status_color = data.path.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
-	imgui.text_colored(data.path.status_text, status_color.x, status_color.y, status_color.z, 1)
-
-	imgui.text("Projected Path Status: ")
-	imgui.same_line()
-	local status_color = data.projected_path.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
-	imgui.text_colored(data.projected_path.status_text, status_color.x, status_color.y, status_color.z, 1)
-
-	imgui.end_window()
-end
 
 
 -- =======================================
@@ -241,17 +270,24 @@ end
 -- =======================================
 
 local function stats()
-	imgui.set_next_window_size(560, 100)
+	imgui.set_next_window_size(660, 150)
 	imgui.begin_window("STATS", nil, flags)
 
+	imgui.text("Editor Status: ")
+	imgui.same_line()
+	imgui.text_colored(data.action_status, 0, 1, 0, 1)
+
 	if data.stats.path_cache then
-		imgui.text("Current Entries: " .. data.stats.path_cache.current_entries .. " Max Capacity: " .. data.stats.path_cache.max_capacity .. " Hit Rate: " .. data.stats.path_cache.hit_rate .. "%")
+		imgui.text("Path Cache - Current Entries: " .. data.stats.path_cache.current_entries .. " Max Capacity: " .. data.stats.path_cache.max_capacity .. " Hit Rate: " .. data.stats.path_cache.hit_rate .. "%")
 	end
 
 	if data.stats.distance_cache then
-		imgui.text("Current Entries: " .. data.stats.distance_cache.current_size .. "  Hit Count: " .. data.stats.distance_cache.hit_count .. " Miss Count: " .. data.stats.distance_cache.miss_count .. " Hit Rate: " .. data.stats.distance_cache.hit_rate .. "%")
+		imgui.text("Distance Cache: Current Entries: " .. data.stats.distance_cache.current_size .. "  Hit Count: " .. data.stats.distance_cache.hit_count .. " Miss Count: " .. data.stats.distance_cache.miss_count .. " Hit Rate: " .. data.stats.distance_cache.hit_rate .. "%")
 	end
 
+	if data.stats.spatial_index then
+		imgui.text("spatial_index - cell_count: " .. data.stats.spatial_index.cell_count .. "  cell_count: " .. data.stats.spatial_index.cell_count .. " avg_edges_per_cell: " .. data.stats.spatial_index.avg_edges_per_cell .. " max_edges_per_cell: " .. data.stats.spatial_index.max_edges_per_cell)
+	end
 	imgui.separator()
 
 	imgui.text_colored("Cache results are mixed. It's always better to test one path at a time!", 1, 0, 0, 1)
@@ -298,195 +334,245 @@ local function settings()
 
 	data.is_window_hovered = imgui.is_window_hovered()
 
-	imgui.text_colored("-> AGENT MODE", 1, 0, 0, 1)
-	imgui.separator()
+	imgui.begin_tab_bar("tabs")
 
-	local agent_mode_label = ""
-	if data.agent_mode == const.AGEND_MODE.FIND_PATH then
-		agent_mode_label = const.EDITOR_STATUS.AGEND_MODE_FIND_PATH_LABEL
-	else
-		agent_mode_label = const.EDITOR_STATUS.AGEND_MODE_FIND_PROJECTED_PATH_LABEL
-	end
-
-	if imgui.button(agent_mode_label) then
-		if data.agent_mode == const.AGEND_MODE.FIND_PATH then
-			data.agent_mode = const.AGEND_MODE.FIND_PROJECTED_PATH
-		else
-			data.agent_mode = const.AGEND_MODE.FIND_PATH
+	-- =======================================
+	-- PATHS
+	-- =======================================
+	local paths_tab_open = imgui.begin_tab_item("Paths")
+	if paths_tab_open then
+		-- =======================================
+		-- AGENT
+		-- =======================================
+		imgui.text("\n")
+		imgui.text_colored("AGENT", 1, 0, 0, 1)
+		imgui.separator()
+		if imgui.begin_combo("AGENT MODE##selectable", get_key_for_value(const.AGEND_MODE, data.agent_mode)) then
+			for key, mode in pairs(const.AGEND_MODE) do
+				if imgui.selectable(key, mode == data.agent_mode) then
+					data.agent_mode = mode
+				end
+			end
+			imgui.end_combo()
 		end
+
+		-- =======================================
+		-- NODE TO NODE
+		-- =======================================
+
+		imgui.text("\n")
+		imgui.text_colored("NODE TO NODE", 1, 0, 0, 1)
+		imgui.separator()
+
+		changed, checked = imgui.checkbox("Node to Node", data.options.node_to_node.is_active)
+		if changed then
+			data.options.node_to_node.is_active = checked
+		end
+
+		imgui.text("Status: ")
+		imgui.same_line()
+		local status_color = data.path.node_to_node.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
+		imgui.text_colored(data.path.node_to_node.status_text, status_color.x, status_color.y, status_color.z, 1)
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Start Node Id", data.options.node_to_node.start_node_id)
+		if changed then
+			data.options.node_to_node.start_node_id = int_value
+		end
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Goal Node Id", data.options.node_to_node.goal_node_id)
+		if changed then
+			data.options.node_to_node.goal_node_id = int_value
+		end
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Max Path Lenght", data.options.node_to_node.max_path)
+		if changed then
+			data.options.node_to_node.max_path = int_value
+		end
+
+		-- =======================================
+		-- PROJECTED TO NODE
+		-- =======================================
+
+		imgui.text("\n")
+		imgui.text_colored("PROJECTED TO NODE", 1, 0, 0, 1)
+		imgui.separator()
+
+		changed, checked = imgui.checkbox("Projected to Node", data.options.projected_to_node.is_active)
+		if changed then
+			data.options.projected_to_node.is_active = checked
+		end
+
+		imgui.text("Status: ")
+		imgui.same_line()
+		local status_color = data.path.projected_to_node.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
+		imgui.text_colored(data.path.projected_to_node.status_text, status_color.x, status_color.y, status_color.z, 1)
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Projected Goal Node Id", data.options.projected_to_node.goal_node_id)
+		if changed then
+			data.options.projected_to_node.goal_node_id = int_value
+		end
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Max Path Lenght", data.options.projected_to_node.max_path)
+		if changed then
+			data.options.projected_to_node.max_path = int_value
+		end
+
+
+		-- =======================================
+		-- NODE TO PROJECTED
+		-- =======================================
+
+		imgui.text("\n")
+		imgui.text_colored("NODE TO PROJECTED", 1, 0, 0, 1)
+		imgui.separator()
+
+		changed, checked = imgui.checkbox("Node to Projected", data.options.node_to_projected.is_active)
+		if changed then
+			data.options.node_to_projected.is_active = checked
+		end
+
+		imgui.text("Status: ")
+		imgui.same_line()
+		local status_color = data.path.node_to_projected.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
+		imgui.text_colored(data.path.node_to_projected.status_text, status_color.x, status_color.y, status_color.z, 1)
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Start Node Id", data.options.node_to_projected.start_node_id)
+		if changed then
+			data.options.node_to_projected.start_node_id = int_value
+		end
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Max Path Lenght", data.options.node_to_projected.max_path)
+		if changed then
+			data.options.node_to_projected.max_path = int_value
+		end
+
+
+		-- =======================================
+		-- PROJECTED TO PROJECTED
+		-- =======================================
+
+		imgui.text("\n")
+		imgui.text_colored("PROJECTED TO PROJECTED", 1, 0, 0, 1)
+		imgui.separator()
+
+		changed, checked = imgui.checkbox("Projected to Projected", data.options.projected_to_projected.is_active)
+		if changed then
+			data.options.projected_to_projected.is_active = checked
+		end
+
+		imgui.text("Status: ")
+		imgui.same_line()
+		local status_color = data.path.projected_to_projected.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
+		imgui.text_colored(data.path.projected_to_projected.status_text, status_color.x, status_color.y, status_color.z, 1)
+
+		imgui.set_next_item_width(250)
+		changed, x, y, z = imgui.input_float3("Start Position", data.options.projected_to_projected.start_position.x, data.options.projected_to_projected.start_position.y, data.options.projected_to_projected.start_position.z)
+		if changed then
+			data.options.projected_to_projected.start_position.x = x
+			data.options.projected_to_projected.start_position.x = y
+			data.options.projected_to_projected.start_position.x = 0.8
+		end
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Max Path Lenght", data.options.projected_to_projected.max_path)
+		if changed then
+			data.options.projected_to_projected.max_path = int_value
+		end
+		imgui.text("\n")
+		imgui.text("\n")
+
+		imgui.end_tab_item()
 	end
-
-	imgui.text("\n")
-	imgui.text_colored("-> PATHS", 1, 0, 0, 1)
-	imgui.separator()
-
-	changed, checked = imgui.checkbox("Find Path", data.options.find_path)
-	if changed then
-		data.options.find_path = checked
-	end
-
-	imgui.set_next_item_width(250)
-	changed, int_value = imgui.input_int("Start Node Id", data.options.find_path_start_node_id)
-	if changed then
-		data.options.find_path_start_node_id = int_value
-	end
-
-	imgui.set_next_item_width(250)
-	changed, int_value = imgui.input_int("Goal Node Id", data.options.find_path_goal_node_id)
-	if changed then
-		data.options.find_path_goal_node_id = int_value
-	end
-
-	imgui.set_next_item_width(250)
-	changed, int_value = imgui.input_int("Max Path Lenght", data.options.find_path_max_path)
-	if changed then
-		data.options.find_path_max_path = int_value
-	end
-
-	imgui.separator()
-	imgui.text_colored("-> PROJECTED PATHS", 1, 0, 0, 1)
-	imgui.separator()
-
-	changed, checked = imgui.checkbox("Find Projected Path", data.options.find_projected_path)
-	if changed then
-		data.options.find_projected_path = checked
-	end
-
-	imgui.set_next_item_width(250)
-	changed, int_value = imgui.input_int("Projected Goal Node Id", data.options.find_projected_path_goal_node_id)
-	if changed then
-		data.options.find_projected_path_goal_node_id = int_value
-	end
-
-	imgui.set_next_item_width(250)
-	changed, int_value = imgui.input_int("Projected Max Path Lenght", data.options.find_projected_path_max_path)
-	if changed then
-		data.options.find_projected_path_max_path = int_value
-	end
-
-	imgui.text("\n")
-	imgui.text_colored("-> DRAW", 1, 0, 0, 1)
-	imgui.separator()
-
-	-- =======================================
-	-- DRAW
-	-- =======================================
-
-	changed, checked = imgui.checkbox("Draw Nodes", data.options.draw_nodes)
-	if changed then
-		data.options.draw_nodes = checked
-		graph.set_nodes_visiblity()
-	end
-
-	imgui.same_line()
-	changed, checked = imgui.checkbox("Draw Edges", data.options.draw_edges)
-	if changed then
-		data.options.draw_edges = checked
-	end
-
-
-	changed, checked = imgui.checkbox("Draw Path", data.options.draw_path)
-	if changed then
-		data.options.draw_path = checked
-	end
-
-	imgui.same_line()
-
-	changed, checked = imgui.checkbox("Draw Projected Path", data.options.draw_projected_path)
-	if changed then
-		data.options.draw_projected_path = checked
-	end
-
-	changed, checked = imgui.checkbox("Draw Smooth Path", data.options.draw_smooth_path)
-	if changed then
-		data.options.draw_smooth_path = checked
-	end
-
-	imgui.same_line()
-
-	changed, checked = imgui.checkbox("Draw Projected Smooth Path", data.options.draw_projected_smooth_path)
-	if changed then
-		data.options.draw_projected_smooth_path = checked
-	end
-
-	imgui.text("\n")
-	imgui.text_colored("-> SHOOTHING", 1, 0, 0, 1)
-	imgui.separator()
 
 	-- =======================================
 	-- SHOOTHING
 	-- =======================================
-	imgui.set_next_item_width(250)
-	if imgui.begin_combo("Smooth Style##selectable", get_key_for_value(pathfinder.PathSmoothStyle, data.options.smoothing_config.style)) then
-		for key, style in pairs(pathfinder.PathSmoothStyle) do
-			if imgui.selectable(key, style == data.options.smoothing_config.style) then
-				data.options.smoothing_config.style = style
+
+	local smmothing_tab_open = imgui.begin_tab_item("Smmothing")
+	if smmothing_tab_open then
+		imgui.set_next_item_width(250)
+		if imgui.begin_combo("Smooth Style##selectable", get_key_for_value(pathfinder.PathSmoothStyle, data.options.smoothing_config.style)) then
+			for key, style in pairs(pathfinder.PathSmoothStyle) do
+				if imgui.selectable(key, style == data.options.smoothing_config.style) then
+					data.options.smoothing_config.style = style
+					graph.update_smooth_config()
+				end
+			end
+
+			imgui.end_combo()
+		end
+
+		imgui.set_next_item_width(250)
+		changed, int_value = imgui.input_int("Sample for Segment", data.options.smoothing_config.bezier_sample_segment)
+		if changed then
+			data.options.smoothing_config.bezier_sample_segment = int_value
+			graph.update_smooth_config()
+		end
+
+		if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_QUADRATIC then
+			imgui.set_next_item_width(250)
+			changed, float_value = imgui.drag_float("Curve Radius", data.options.smoothing_config.bezier_curve_radius, 0.01, 0.0, 1.0, 1)
+			if changed then
+				data.options.smoothing_config.bezier_curve_radius = float_value
 				graph.update_smooth_config()
 			end
 		end
 
-		imgui.end_combo()
-	end
-
-	imgui.set_next_item_width(250)
-	changed, int_value = imgui.input_int("Sample for Segment", data.options.smoothing_config.bezier_sample_segment)
-	if changed then
-		data.options.smoothing_config.bezier_sample_segment = int_value
-		graph.update_smooth_config()
-	end
-
-	if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_QUADRATIC then
-		imgui.set_next_item_width(250)
-		changed, float_value = imgui.drag_float("Curve Radius", data.options.smoothing_config.bezier_curve_radius, 0.01, 0.0, 1.0, 1)
-		if changed then
-			data.options.smoothing_config.bezier_curve_radius = float_value
-			graph.update_smooth_config()
-		end
-	end
-
-	if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_CUBIC then
-		imgui.set_next_item_width(250)
-		changed, float_value = imgui.drag_float("Control Point Offset", data.options.smoothing_config.bezier_control_point_offset, 0.01, 0.0, 1.0, 1)
-		if changed then
-			data.options.smoothing_config.bezier_control_point_offset = float_value
-			graph.update_smooth_config()
-		end
-	end
-
-	if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_ADAPTIVE then
-		imgui.set_next_item_width(250)
-		changed, float_value = imgui.drag_float("Tightness", data.options.smoothing_config.bezier_adaptive_tightness, 0.01, 0.0, 1.0, 1)
-		if changed then
-			data.options.smoothing_config.bezier_adaptive_tightness = float_value
-			graph.update_smooth_config()
+		if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_CUBIC then
+			imgui.set_next_item_width(250)
+			changed, float_value = imgui.drag_float("Control Point Offset", data.options.smoothing_config.bezier_control_point_offset, 0.01, 0.0, 1.0, 1)
+			if changed then
+				data.options.smoothing_config.bezier_control_point_offset = float_value
+				graph.update_smooth_config()
+			end
 		end
 
-		imgui.set_next_item_width(250)
-		changed, float_value = imgui.drag_float("Roundness", data.options.smoothing_config.bezier_adaptive_roundness, 0.01, 0.0, 1.0, 1)
-		if changed then
-			data.options.smoothing_config.bezier_adaptive_roundness = float_value
-			graph.update_smooth_config()
+		if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_ADAPTIVE then
+			imgui.set_next_item_width(250)
+			changed, float_value = imgui.drag_float("Tightness", data.options.smoothing_config.bezier_adaptive_tightness, 0.01, 0.0, 1.0, 1)
+			if changed then
+				data.options.smoothing_config.bezier_adaptive_tightness = float_value
+				graph.update_smooth_config()
+			end
+
+			imgui.set_next_item_width(250)
+			changed, float_value = imgui.drag_float("Roundness", data.options.smoothing_config.bezier_adaptive_roundness, 0.01, 0.0, 1.0, 1)
+			if changed then
+				data.options.smoothing_config.bezier_adaptive_roundness = float_value
+				graph.update_smooth_config()
+			end
+
+			imgui.set_next_item_width(250)
+			changed, float_value = imgui.drag_float("Max Corner Distance", data.options.smoothing_config.bezier_adaptive_max_corner_distance, 0.1, 0.0, 100.0, 0.1)
+			if changed then
+				data.options.smoothing_config.bezier_adaptive_max_corner_distance = float_value
+				graph.update_smooth_config()
+			end
 		end
 
-		imgui.set_next_item_width(250)
-		changed, float_value = imgui.drag_float("Max Corner Distance", data.options.smoothing_config.bezier_adaptive_max_corner_distance, 0.1, 0.0, 100.0, 0.1)
-		if changed then
-			data.options.smoothing_config.bezier_adaptive_max_corner_distance = float_value
-			graph.update_smooth_config()
+		if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.CIRCULAR_ARC then
+			imgui.set_next_item_width(250)
+			changed, float_value = imgui.drag_float("Arc Radius", data.options.smoothing_config.bezier_arc_radius, 0.1, 0.0, 100.0, 0.1)
+			if changed then
+				data.options.smoothing_config.bezier_arc_radius = float_value
+				graph.update_smooth_config()
+			end
 		end
+		imgui.end_tab_item()
 	end
 
-	if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.CIRCULAR_ARC then
-		imgui.set_next_item_width(250)
-		changed, float_value = imgui.drag_float("Arc Radius", data.options.smoothing_config.bezier_arc_radius, 0.1, 0.0, 100.0, 0.1)
-		if changed then
-			data.options.smoothing_config.bezier_arc_radius = float_value
-			graph.update_smooth_config()
-		end
-	end
-
+	imgui.end_tab_bar()
 	imgui.end_window()
 end
+
+
 
 -- =======================================
 -- Imgui Update
@@ -496,10 +582,8 @@ function graph_imgui.update()
 	--	print("want_mouse_input", imgui.want_mouse_input())
 	data.want_mouse_input = imgui.want_mouse_input()
 	main_menu_bar()
-	imgui.demo()
-
+	--	imgui.demo()
 	tools()
-	status()
 	settings()
 	stats()
 	node()

@@ -1,45 +1,72 @@
-local const = require("graph_editor.scripts.const")
+local const            = require("graph_editor.scripts.const")
 
-local data = {}
+-- =======================================
+-- MODULE
+-- =======================================
 
-data.editor_state = 0
-data.mouse_position = vmath.vector3(0, 0, 1)
+local data             = {}
 
-data.nodes = {}
-data.edges = {}
---data.is_window_hovered = false
---data.is_window_focused = false
-data.want_mouse_input = false
+-- =======================================
+-- VARIABLES
+-- =======================================
+
+data.maps              = {}
+data.nodes             = {}
+data.edges             = {}
+data.editor_state      = 0
+data.mouse_position    = vmath.vector3(0, 0, 1)
+data.want_mouse_input  = false
 data.path_smoothing_id = 0
-data.action_status = ""
-data.is_node_selected = false
-data.selected_node = {}
-data.agent_mode = const.AGEND_MODE.FIND_PROJECTED_PATH
+data.action_status     = ""
+data.is_node_selected  = false
+data.selected_node     = {}
+data.agent_mode        = const.AGEND_MODE.NODE_TO_NODE
+data.stats             = {}
 
-data.stats = {}
+data.options           = {
+	-- Node to Node
 
-data.options = {
-	-- Normal Paths
-	find_path                        = false,
-	find_path_start_node_id          = 0,
-	find_path_goal_node_id           = 0,
-	find_path_max_path               = 32,
+	node_to_node           = {
+		is_active     = false,
+		start_node_id = 0,
+		goal_node_id  = 0,
+		max_path      = 32,
+	},
 
-	-- Projected Paths
-	find_projected_path              = false,
-	find_projected_path_goal_node_id = 0,
-	find_projected_path_max_path     = 32,
+	-- Projected to Node
+	projected_to_node      = {
+		is_active    = false,
+		goal_node_id = 0,
+		max_path     = 32,
+	},
+
+	-- Node to Projected
+	node_to_projected      = {
+		is_active     = false,
+		start_node_id = 0,
+		max_path      = 32,
+	},
+
+	-- Projected to Projected
+	projected_to_projected = {
+		is_active      = false,
+		start_position = vmath.vector3(10, 10, 0.8),
+		max_path       = 32,
+	},
+
+
 
 	-- Draw
-	draw_nodes                       = true,
-	draw_edges                       = true,
-	draw_path                        = true,
-	draw_projected_path              = true,
-	draw_smooth_path                 = true,
-	draw_projected_smooth_path       = true,
+	draw = {
+		nodes       = true,
+		edges       = true,
+		paths       = true,
+		smooth_path = true,
+	},
+
 
 	-- Smoothing
-	smoothing_config                 = {
+	smoothing_config = {
 		style                               = pathfinder.PathSmoothStyle.BEZIER_QUADRATIC,
 		bezier_sample_segment               = 8, -- Number of segments per curve
 		bezier_control_point_offset         = 0.5, -- For bezier_cubic style
@@ -51,19 +78,39 @@ data.options = {
 	}
 }
 
-data.path = {
-	size = 0,
-	status = -100,
-	status_text = "",
-	path = {}
-}
+data.path              = {
+	node_to_node = {
+		size        = 0,
+		status      = -100,
+		status_text = "",
+		path        = {}
+	},
 
-data.projected_path = {
-	size = 0,
-	status = -100,
-	status_text = "",
-	entry_point = vmath.vector3(),
-	path = {}
+	projected_to_node = {
+		size        = 0,
+		status      = -100,
+		status_text = "",
+		entry_point = vmath.vector3(),
+		path        = {}
+	},
+
+	node_to_projected = {
+		size        = 0,
+		status      = -100,
+		status_text = "",
+		exit_point  = vmath.vector3(),
+		path        = {}
+	},
+
+	projected_to_projected = {
+		size        = 0,
+		status      = -100,
+		status_text = "",
+		entry_point = vmath.vector3(),
+		exit_point  = vmath.vector3(),
+		path        = {}
+	}
+
 }
 
 
