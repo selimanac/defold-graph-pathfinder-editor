@@ -1,16 +1,16 @@
-local const            = require("graph_editor.scripts.const")
+local const = require("graph_editor.scripts.const")
 
 -- =======================================
 -- MODULE
 -- =======================================
 
-local data             = {}
+local data  = {}
 
 -- =======================================
 -- VARIABLES
 -- =======================================
 
-data.maps              = {}
+
 data.nodes             = {}
 data.edges             = {}
 data.editor_state      = 0
@@ -22,6 +22,7 @@ data.is_node_selected  = false
 data.selected_node     = {}
 data.agent_mode        = const.AGEND_MODE.NODE_TO_NODE
 data.stats             = {}
+data.selected_file     = -1
 
 data.options           = {
 	-- Node to Node

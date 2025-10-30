@@ -22,8 +22,8 @@ local agent_states    = {
 function agents.add()
 	local path = data.path[const.AGENT_TO_PATH[data.agent_mode]].path
 	local path_status = data.path[const.AGENT_TO_PATH[data.agent_mode]].status
-	print("path_status", path_status)
-	if path_status = pathfinder.PathStatus.SUCCESS then
+
+	if path_status ~= pathfinder.PathStatus.SUCCESS then
 		data.action_status = const.EDITOR_STATUS.NO_PATH_FOR_AGENT
 
 		timer.delay(1.5, false, function()

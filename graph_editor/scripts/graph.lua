@@ -116,6 +116,9 @@ end
 -- =======================================
 -- FUNCTIONS
 -- =======================================
+local function table_to_vec3(t)
+	return vmath.vector3(t[1], t[2], t[3])
+end
 
 local function move_node()
 	local result, _ = collision.query_mouse_node()
@@ -137,7 +140,7 @@ local function add_node(node, loaded_edges)
 	local node_position = data.mouse_position
 
 	if node then
-		node_position = node.position
+		node_position = node.position --table_to_vec3(node.position)
 	end
 
 	local node_url = factory.create(const.FACTORIES.NODE, vmath.vector3(node_position.x, node_position.y, 0.8))
@@ -254,10 +257,9 @@ end
 function graph.init()
 	data.action_status = const.EDITOR_STATUS.READY
 	collision.init()
+	pathfinder.init(const.GRAPH_EDITOR.MAX_NODES, const.GRAPH_EDITOR.MAX_GAMEOBJECT_NODES, const.GRAPH_EDITOR.MAX_EDGES_PER_NODE, const.GRAPH_EDITOR.HEAP_POOL_BLOCK_SIZE, const.GRAPH_EDITOR.MAX_CACHE_PATH_LENGTH)
+
 	add_bindings()
-
-	pathfinder.init(const.GRAPH.MAX_NODES, const.GRAPH.MAX_GAMEOBJECT_NODES, const.GRAPH.MAX_EDGES_PER_NODE, const.GRAPH.HEAP_POOL_BLOCK_SIZE, const.GRAPH.MAX_CACHE_PATH_LENGTH)
-
 	data.path_smoothing_id = pathfinder.add_path_smoothing(data.options.smoothing_config)
 end
 

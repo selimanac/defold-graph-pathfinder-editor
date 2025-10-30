@@ -26,7 +26,7 @@ end
 local function draw_node_to_node()
 	local smooth_path = data.options.draw.smooth_path and data.path_smoothing_id or nil
 
-
+	--local start_time = socket.gettime()
 	data.path.node_to_node.size,
 	data.path.node_to_node.status,
 	data.path.node_to_node.status_text,
@@ -35,6 +35,11 @@ local function draw_node_to_node()
 		data.options.node_to_node.goal_node_id,
 		data.options.node_to_node.max_path,
 		smooth_path)
+
+	--	local end_time = socket.gettime()
+	--	local elapsed_ms = (end_time - start_time) * 1000
+
+	--	print("Time: " .. string.format("%.4f", elapsed_ms) .. "ms")
 
 	if data.path.node_to_node.status == pathfinder.PathStatus.SUCCESS and data.options.draw.paths then
 		for i = 1, data.path.node_to_node.size - 1, 1 do

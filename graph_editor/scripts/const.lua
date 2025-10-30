@@ -1,4 +1,12 @@
-local const         = {}
+local const = {}
+
+local function split_csv(str)
+	local t = {}
+	for token in str:gmatch("[^,%s]+") do
+		t[#t + 1] = token
+	end
+	return t
+end
 
 const.EDITOR_STATES = {
 	ADD_NODE             = 1,
@@ -22,24 +30,30 @@ const.FACTORIES     = {
 	AGENT     = "/graph_editor/factories#agent",
 	DIRECTION = "/graph_editor/factories#direction",
 }
-const.GRAPH         = {
+const.GRAPH_EDITOR  = {
 	MAX_NODES             = sys.get_config_int("graph_editor.max_nodes", 32),
-	MAX_GAMEOBJECT_NODES  = sys.get_config_int("graph_editor.max_nodes", 32),
+	MAX_GAMEOBJECT_NODES  = sys.get_config_int("graph_editor.max_gameobject_nodes", 32),
 	MAX_EDGES_PER_NODE    = sys.get_config_int("graph_editor.max_edges_per_node", 6),
 	HEAP_POOL_BLOCK_SIZE  = sys.get_config_int("graph_editor.heap_pool_block_size", 32),
 	MAX_CACHE_PATH_LENGTH = sys.get_config_int("graph_editor.max_cache_path_length", 32),
+	FOLDER                = project_path.get() .. "/" .. sys.get_config_string("graph_editor.folder"),
+	FILES                 = split_csv(sys.get_config_string("graph_editor.files", "default.json"))
 }
+
+
 const.COLORS        = {
 	RED   = vmath.vector3(1, 0, 0),
 	BLUE  = vmath.vector3(0, 0, 1),
 	GREEN = vmath.vector3(0, 1, 0)
 }
 const.FILE_STATUS   = {
-	SAVE_SUCCESS = "...Saved!...",
-	SAVE_ERROR   = "...Can't save the file!...",
-	LOAD_SUCCESS = "...Loaded!...",
-	LOAD_ERROR   = "...Can't load the file!...",
-	PREPARE      = "...Preparing Data..."
+	SAVE_SUCCESS   = "...Saved!...",
+	EXPORT_SUCCESS = "...Exported!...",
+	SAVE_ERROR     = "...Can't save the file!...",
+	EXPORT_ERROR   = "...Can't export the file!...",
+	LOAD_SUCCESS   = "...Loaded!...",
+	LOAD_ERROR     = "...Can't load the file!...",
+	PREPARE        = "...Preparing Data..."
 }
 
 const.EDITOR_STATUS = {
@@ -72,5 +86,7 @@ const.AGENT_TO_PATH = {
 	"node_to_projected",
 	"projected_to_projected"
 }
+
+
 
 return const

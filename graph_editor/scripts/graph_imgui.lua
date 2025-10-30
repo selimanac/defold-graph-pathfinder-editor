@@ -1,49 +1,90 @@
-local style          = require("graph_editor.scripts.imgui_style")
-local data           = require("graph_editor.scripts.data")
-local const          = require("graph_editor.scripts.const")
-local graph          = require("graph_editor.scripts.graph")
-local graph_imgui    = {}
+local style             = require("graph_editor.scripts.imgui_style")
+local data              = require("graph_editor.scripts.data")
+local const             = require("graph_editor.scripts.const")
+local graph             = require("graph_editor.scripts.graph")
+local graph_imgui       = {}
 
 -- =======================================
 -- VARS
 -- =======================================
-local flags          = bit.bor(imgui.WINDOWFLAGS_NOTITLEBAR)
-local changed        = false
-local checked        = false
-local int_value      = 0
-local float_value    = 0.0
-local x, y, z        = 0.0, 0.0, 0.0
-
-local save_load_text = ""
+local flags             = bit.bor(imgui.WINDOWFLAGS_NOTITLEBAR)
+local changed           = false
+local checked           = false
+local int_value         = 0
+local float_value       = 0.0
+local x, y, z           = 0.0, 0.0, 0.0
+local open_file_modal   = false
+local open_save_modal   = false
+local open_export_modal = false
+local save_load_text    = ""
+local save_file_name    = ""
+local export_nodes      = {}
+local export_edges      = {}
 -- =======================================
 -- Save
 -- =======================================
+local function vec3_to_table(v)
+	return { v.x, v.y, v.z }
+end
+
+local function add_file(filename)
+	for i, v in ipairs(const.GRAPH_EDITOR.FILES) do
+		if v == filename then
+			return i
+		end
+	end
+	table.insert(const.GRAPH_EDITOR.FILES, filename)
+	return #const.GRAPH_EDITOR.FILES
+end
+
+local function set_title(text)
+	text = text and text or "Graph Pathfinder Editor"
+	window.set_title(text)
+end
+
+
 
 local function prepare_for_save()
-	for _, node in pairs(data.nodes) do
+	local duplicate = sys.serialize(data.nodes)
+	duplicate = sys.deserialize(duplicate)
+
+	for _, node in pairs(duplicate) do
+		--node.position = vec3_to_table(node.position)
 		for i, edge in ipairs(data.edges) do
 			if edge.from_node_id == node.pathfinder_node_id or edge.to_node_id == node.pathfinder_node_id then
 				node.edges[i] = {}
 				if edge.from_node_id == node.pathfinder_node_id then
 					node.edges[i].from_node_id = node.pathfinder_node_id
 				end
-
 				if edge.to_node_id == node.pathfinder_node_id then
 					node.edges[i].to_node_id = node.pathfinder_node_id
 				end
 			end
 		end
 	end
+	return duplicate
 end
 
 local function save()
 	save_load_text = const.FILE_STATUS.SAVE_SUCCESS
-	prepare_for_save()
+	local json_nodes = prepare_for_save()
 
-	local filename = sys.get_save_file(const.PROJECT_NAME, "editor")
-	local loaded_data = sys.save(filename, { nodes = data.nodes, edges = data.edges })
+	local save_status = true
+	local file_name = const.GRAPH_EDITOR.FILES[data.selected_file]
+	local file_path = const.GRAPH_EDITOR.FOLDER .. "/" .. file_name
 
-	save_load_text = loaded_data and const.FILE_STATUS.SAVE_SUCCESS or const.FILE_STATUS.SAVE_ERROR
+
+	local json_data = sys.serialize({ nodes = json_nodes, edges = data.edges })
+	local file = io.open(file_path, "w")
+	if file then
+		file:write(json_data)
+		file:close()
+		set_title(file_path)
+	else
+		save_status = false
+	end
+
+	save_load_text = save_status and const.FILE_STATUS.SAVE_SUCCESS or const.FILE_STATUS.SAVE_ERROR
 
 	timer.delay(0.7, false, function()
 		save_load_text = ""
@@ -51,28 +92,88 @@ local function save()
 end
 
 local function load()
-	local filename = sys.get_save_file("defold-graph-pathfinder-editor", "editor")
-	local loaded_data = sys.load(filename)
+	local load_status = true
+	local file_name = const.GRAPH_EDITOR.FILES[data.selected_file]
+	local file_path = const.GRAPH_EDITOR.FOLDER .. "/" .. file_name
+	local file = io.open(file_path, "r")
+	if not file then
+		load_status = false
+	else
+		local content = file:read("*a") -- read entire file
+		file:close()
 
-	save_load_text = loaded_data and const.FILE_STATUS.LOAD_SUCCESS or const.FILE_STATUS.LOAD_ERROR
-
-	if loaded_data then
+		local loaded_data = sys.deserialize(content)
 		graph.load(loaded_data)
+		set_title(file_path)
 	end
+
+	save_load_text = load_status and const.FILE_STATUS.LOAD_SUCCESS or const.FILE_STATUS.LOAD_ERROR
 
 	timer.delay(0.7, false, function()
 		save_load_text = ""
 	end)
 end
 
+local function save_exports(nodes, edges)
+	if data.selected_file > -1 then
+		save_load_text = const.FILE_STATUS.EXPORT_SUCCESS
+
+		local save_status = true
+		local file_name = const.GRAPH_EDITOR.FILES[data.selected_file]
+
+		local nodes_file_name = file_name:gsub("%.json$", "")
+		nodes_file_name = nodes_file_name .. "_nodes.json"
+
+		local file_path = const.GRAPH_EDITOR.FOLDER .. "/" .. nodes_file_name
+
+		local json_data = nodes
+		local file = io.open(file_path, "w")
+		if file then
+			file:write(json_data)
+			file:close()
+		else
+			save_status = false
+		end
+
+		save_load_text = save_status and const.FILE_STATUS.EXPORT_SUCCESS or const.FILE_STATUS.EXPORT_ERROR
+
+		timer.delay(0.7, false, function()
+			save_load_text = ""
+		end)
+
+		local edges_file_name = file_name:gsub("%.json$", "")
+		edges_file_name = edges_file_name .. "_edges.json"
+
+
+		file_path = const.GRAPH_EDITOR.FOLDER .. "/" .. edges_file_name
+
+		json_data = edges
+		file = io.open(file_path, "w")
+		if file then
+			file:write(json_data)
+			file:close()
+		else
+			save_status = false
+		end
+
+		save_load_text = save_status and const.FILE_STATUS.EXPORT_SUCCESS or const.FILE_STATUS.EXPORT_ERROR
+
+		timer.delay(0.7, false, function()
+			save_load_text = ""
+		end)
+	else
+		open_export_modal = true
+	end
+end
+
 local function export_json()
 	local temp_nodes = {}
+
 	for _, node in pairs(data.nodes) do
 		local temp_node = { x = node.position.x, y = node.position.y }
 		table.insert(temp_nodes, temp_node)
 	end
-	local data_table = json.encode(temp_nodes)
-	pprint(data_table)
+	export_nodes = json.encode(temp_nodes)
 
 
 	local temp_edges = {}
@@ -85,9 +186,9 @@ local function export_json()
 		table.insert(temp_edges, temp_edge)
 	end
 
-	local data_table = json.encode(temp_edges)
+	export_edges = json.encode(temp_edges)
 
-	pprint(data_table)
+	save_exports(export_nodes, export_edges)
 end
 
 local function export_lua()
@@ -131,16 +232,9 @@ function graph_imgui.init()
 	imgui.set_display_size(1920, 1080)
 	imgui.set_ini_filename("graph_editor.ini")
 	style.set()
+	set_title()
 
 	window.set_listener(window_callback)
-
-	local map = {
-		filename = "level_1"
-	}
-	table.insert(data.maps, map)
-	local path = sys.get_application_path()
-
-	print(path)
 end
 
 -- =======================================
@@ -149,12 +243,23 @@ end
 local function main_menu_bar(self)
 	if imgui.begin_main_menu_bar() then
 		if imgui.begin_menu("File") then
+			if imgui.menu_item("New", nil) then
+				data.selected_file = -1
+				graph.reset()
+				graph.init()
+				set_title()
+			end
+
 			if imgui.menu_item("Load", nil) then
-				load()
+				open_file_modal = true
 			end
 
 			if imgui.menu_item("Save", nil) then
-				save()
+				if data.selected_file > -1 then
+					save()
+				else
+					open_save_modal = true
+				end
 			end
 
 			if imgui.menu_item("Export JSON", nil) then
@@ -172,14 +277,6 @@ local function main_menu_bar(self)
 			imgui.end_menu()
 		end
 
-		if imgui.begin_menu("Edit") then
-			if imgui.menu_item("Reset", nil) then
-				graph.reset()
-				graph.init()
-			end
-
-			imgui.end_menu()
-		end
 
 		if imgui.begin_menu("View") then
 			local clicked, selected = imgui.menu_item("Nodes", nil, data.options.draw.nodes)
@@ -262,15 +359,12 @@ local function tools()
 	imgui.end_window()
 end
 
-
-
-
 -- =======================================
 -- STATS
 -- =======================================
 
 local function stats()
-	imgui.set_next_window_size(660, 150)
+	imgui.set_next_window_size(700, 150)
 	imgui.begin_window("STATS", nil, flags)
 
 	imgui.text("Editor Status: ")
@@ -278,15 +372,16 @@ local function stats()
 	imgui.text_colored(data.action_status, 0, 1, 0, 1)
 
 	if data.stats.path_cache then
-		imgui.text("Path Cache - Current Entries: " .. data.stats.path_cache.current_entries .. " Max Capacity: " .. data.stats.path_cache.max_capacity .. " Hit Rate: " .. data.stats.path_cache.hit_rate .. "%")
+		imgui.text("Path Cache - Current Entries: " .. data.stats.path_cache.current_entries .. " | Max Capacity: " .. data.stats.path_cache.max_capacity .. " | Hit Rate: " .. data.stats.path_cache.hit_rate .. "%")
 	end
 
 	if data.stats.distance_cache then
-		imgui.text("Distance Cache: Current Entries: " .. data.stats.distance_cache.current_size .. "  Hit Count: " .. data.stats.distance_cache.hit_count .. " Miss Count: " .. data.stats.distance_cache.miss_count .. " Hit Rate: " .. data.stats.distance_cache.hit_rate .. "%")
+		imgui.text("Distance Cache - Current Entries: " .. data.stats.distance_cache.current_size .. " | Hit Count: " .. data.stats.distance_cache.hit_count .. " | Miss Count: " .. data.stats.distance_cache.miss_count .. " | Hit Rate: " .. data.stats.distance_cache.hit_rate .. "%")
 	end
 
 	if data.stats.spatial_index then
-		imgui.text("spatial_index - cell_count: " .. data.stats.spatial_index.cell_count .. "  cell_count: " .. data.stats.spatial_index.cell_count .. " avg_edges_per_cell: " .. data.stats.spatial_index.avg_edges_per_cell .. " max_edges_per_cell: " .. data.stats.spatial_index.max_edges_per_cell)
+		imgui.text("Spatial Index - Cell Count: " ..
+			data.stats.spatial_index.cell_count .. " |  Edge Count: " .. data.stats.spatial_index.edge_count .. " | Avg. Edges per Cell: " .. data.stats.spatial_index.avg_edges_per_cell .. " | Max Edges per Cell: " .. data.stats.spatial_index.max_edges_per_cell)
 	end
 	imgui.separator()
 
@@ -344,7 +439,7 @@ local function settings()
 		-- =======================================
 		-- AGENT
 		-- =======================================
-		imgui.text("\n")
+		imgui.spacing()
 		imgui.text_colored("AGENT", 1, 0, 0, 1)
 		imgui.separator()
 		if imgui.begin_combo("AGENT MODE##selectable", get_key_for_value(const.AGEND_MODE, data.agent_mode)) then
@@ -360,7 +455,7 @@ local function settings()
 		-- NODE TO NODE
 		-- =======================================
 
-		imgui.text("\n")
+		imgui.spacing()
 		imgui.text_colored("NODE TO NODE", 1, 0, 0, 1)
 		imgui.separator()
 
@@ -375,19 +470,19 @@ local function settings()
 		imgui.text_colored(data.path.node_to_node.status_text, status_color.x, status_color.y, status_color.z, 1)
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Start Node Id", data.options.node_to_node.start_node_id)
+		changed, int_value = imgui.input_int("Start Node Id##node_to_node", data.options.node_to_node.start_node_id)
 		if changed then
 			data.options.node_to_node.start_node_id = int_value
 		end
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Goal Node Id", data.options.node_to_node.goal_node_id)
+		changed, int_value = imgui.input_int("Goal Node Id##node_to_node", data.options.node_to_node.goal_node_id)
 		if changed then
 			data.options.node_to_node.goal_node_id = int_value
 		end
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Max Path Lenght", data.options.node_to_node.max_path)
+		changed, int_value = imgui.input_int("Max Path Lenght##node_to_node", data.options.node_to_node.max_path)
 		if changed then
 			data.options.node_to_node.max_path = int_value
 		end
@@ -396,7 +491,7 @@ local function settings()
 		-- PROJECTED TO NODE
 		-- =======================================
 
-		imgui.text("\n")
+		imgui.spacing()
 		imgui.text_colored("PROJECTED TO NODE", 1, 0, 0, 1)
 		imgui.separator()
 
@@ -411,13 +506,13 @@ local function settings()
 		imgui.text_colored(data.path.projected_to_node.status_text, status_color.x, status_color.y, status_color.z, 1)
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Projected Goal Node Id", data.options.projected_to_node.goal_node_id)
+		changed, int_value = imgui.input_int("Goal Node Id##projected_to_node", data.options.projected_to_node.goal_node_id)
 		if changed then
 			data.options.projected_to_node.goal_node_id = int_value
 		end
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Max Path Lenght", data.options.projected_to_node.max_path)
+		changed, int_value = imgui.input_int("Max Path Lenght##projected_to_node", data.options.projected_to_node.max_path)
 		if changed then
 			data.options.projected_to_node.max_path = int_value
 		end
@@ -427,7 +522,7 @@ local function settings()
 		-- NODE TO PROJECTED
 		-- =======================================
 
-		imgui.text("\n")
+		imgui.spacing()
 		imgui.text_colored("NODE TO PROJECTED", 1, 0, 0, 1)
 		imgui.separator()
 
@@ -442,13 +537,13 @@ local function settings()
 		imgui.text_colored(data.path.node_to_projected.status_text, status_color.x, status_color.y, status_color.z, 1)
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Start Node Id", data.options.node_to_projected.start_node_id)
+		changed, int_value = imgui.input_int("Start Node Id##node_to_projected", data.options.node_to_projected.start_node_id)
 		if changed then
 			data.options.node_to_projected.start_node_id = int_value
 		end
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Max Path Lenght", data.options.node_to_projected.max_path)
+		changed, int_value = imgui.input_int("Max Path Lenght##node_to_projected", data.options.node_to_projected.max_path)
 		if changed then
 			data.options.node_to_projected.max_path = int_value
 		end
@@ -458,7 +553,7 @@ local function settings()
 		-- PROJECTED TO PROJECTED
 		-- =======================================
 
-		imgui.text("\n")
+		imgui.spacing()
 		imgui.text_colored("PROJECTED TO PROJECTED", 1, 0, 0, 1)
 		imgui.separator()
 
@@ -481,12 +576,11 @@ local function settings()
 		end
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Max Path Lenght", data.options.projected_to_projected.max_path)
+		changed, int_value = imgui.input_int("Max Path Lenght##projected_to_projected", data.options.projected_to_projected.max_path)
 		if changed then
 			data.options.projected_to_projected.max_path = int_value
 		end
-		imgui.text("\n")
-		imgui.text("\n")
+		imgui.spacing()
 
 		imgui.end_tab_item()
 	end
@@ -572,6 +666,88 @@ local function settings()
 	imgui.end_window()
 end
 
+local function file_select_modal()
+	if imgui.begin_popup_modal("Select File", imgui.WINDOWFLAGS_ALWAYSAUTORESIZE) then
+		imgui.begin_child("listbox", 150, 100, true)
+		for i, file in ipairs(const.GRAPH_EDITOR.FILES) do
+			local is_selected = (i == data.selected_file)
+			if imgui.selectable(file, is_selected) then
+				data.selected_file = i
+			end
+		end
+		imgui.end_child()
+
+		open_file_modal = false
+
+		imgui.separator()
+		if imgui.button("CANCEL") then
+			imgui.close_current_popup()
+		end
+
+		imgui.same_line()
+
+		if imgui.button("LOAD") then
+			imgui.close_current_popup()
+
+			load()
+		end
+		imgui.end_popup()
+	end
+end
+
+
+local function file_save_modal()
+	if imgui.begin_popup_modal("Save File", imgui.WINDOWFLAGS_ALWAYSAUTORESIZE) then
+		local changed, text = imgui.input_text(".json", save_file_name)
+		if changed then
+			save_file_name = text
+		end
+		open_save_modal = false
+
+		imgui.separator()
+		if imgui.button("CANCEL") then
+			imgui.close_current_popup()
+		end
+
+		imgui.same_line()
+
+		if imgui.button("SAVE") then
+			data.selected_file = add_file(save_file_name .. ".json")
+			imgui.close_current_popup()
+			save()
+		end
+		imgui.end_popup()
+	end
+end
+
+local function file_export_modal()
+	if imgui.begin_popup_modal("Export File", imgui.WINDOWFLAGS_ALWAYSAUTORESIZE) then
+		local changed, text = imgui.input_text(".json", save_file_name)
+
+		if changed then
+			save_file_name = text
+		end
+
+		imgui.text(save_file_name .. "_nodes.json")
+		imgui.text(save_file_name .. "_edges.json")
+
+		open_export_modal = false
+		imgui.separator()
+		if imgui.button("CANCEL") then
+			imgui.close_current_popup()
+		end
+
+		imgui.same_line()
+
+		if imgui.button("SAVE") then
+			data.selected_file = add_file(save_file_name .. ".json")
+			imgui.close_current_popup()
+			save()
+			save_exports(export_nodes, export_edges)
+		end
+		imgui.end_popup()
+	end
+end
 
 
 -- =======================================
@@ -581,12 +757,29 @@ end
 function graph_imgui.update()
 	--	print("want_mouse_input", imgui.want_mouse_input())
 	data.want_mouse_input = imgui.want_mouse_input()
+
 	main_menu_bar()
-	--	imgui.demo()
+	imgui.demo()
 	tools()
 	settings()
 	stats()
 	node()
+
+	if open_file_modal then
+		imgui.open_popup("Select File", imgui.WINDOWFLAGS_ALWAYSAUTORESIZE)
+	end
+
+	if open_save_modal then
+		imgui.open_popup("Save File", imgui.WINDOWFLAGS_ALWAYSAUTORESIZE)
+	end
+
+	if open_export_modal then
+		imgui.open_popup("Export File", imgui.WINDOWFLAGS_ALWAYSAUTORESIZE)
+	end
+
+	file_select_modal()
+	file_save_modal()
+	file_export_modal()
 end
 
 return graph_imgui

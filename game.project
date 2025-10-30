@@ -26,13 +26,13 @@ dependencies#3 = https://github.com/selimanac/defold-daabbcc/archive/refs/heads/
 [native_extension]
 app_manifest = /macos.appmanifest
 
-[graph_editor]
-max_nodes = 256
-max_gameobject_nodes = 256
-max_edges_per_node = 6
-heap_pool_block_size = 32
-max_cache_path_length = 64
-
 [sprite]
 max_count = 1024
+
+[library]
+include_dirs = graph_editor
+
+[graph_editor]
+folder = data
+files = test.json, test2.json,editor.json,lookout.json
 
