@@ -8,6 +8,7 @@ shared_state = 1
 width = 1920
 height = 1080
 high_dpi = 1
+fullscreen = 0
 
 [android]
 input_method = HiddenInputField
@@ -34,5 +35,16 @@ include_dirs = graph_editor
 
 [graph_editor]
 folder = data
-files = test.json, test2.json,editor.json,lookout.json
+files = test.json, test2.json,editor.json,lookout.json,tower.json
+max_gameobject_nodes = 1024
+max_nodes = 1024
+
+[label]
+max_count = 1024
+
+[factory]
+max_count = 1024
+
+[daabbcc]
+max_gameobject_count = 1024
 

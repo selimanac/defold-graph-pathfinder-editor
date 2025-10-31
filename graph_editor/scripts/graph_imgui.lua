@@ -220,7 +220,7 @@ local function window_callback(self, event, data)
 	elseif event == window.WINDOW_EVENT_DEICONIFIED then
 		--	print("window.WINDOW_EVENT_DEICONIFIED")
 	elseif event == window.WINDOW_EVENT_RESIZED then
-		--	print("Window resized: ", data.width, data.height)
+		print("Window resized: ", data.width, data.height)
 		imgui.set_display_size(data.width, data.height)
 	end
 end
@@ -282,6 +282,7 @@ local function main_menu_bar(self)
 			local clicked, selected = imgui.menu_item("Nodes", nil, data.options.draw.nodes)
 			if clicked then
 				data.options.draw.nodes = selected
+				graph.set_nodes_visiblity()
 			end
 
 			local clicked, selected = imgui.menu_item("Edges", nil, data.options.draw.edges)
@@ -759,7 +760,7 @@ function graph_imgui.update()
 	data.want_mouse_input = imgui.want_mouse_input()
 
 	main_menu_bar()
-	imgui.demo()
+	--imgui.demo()
 	tools()
 	settings()
 	stats()

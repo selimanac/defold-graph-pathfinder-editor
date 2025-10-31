@@ -1,16 +1,14 @@
-local const = require("graph_editor.scripts.const")
+local const            = require("graph_editor.scripts.const")
 
 -- =======================================
 -- MODULE
 -- =======================================
 
-local data  = {}
+local data             = {}
 
 -- =======================================
 -- VARIABLES
 -- =======================================
-
-
 data.nodes             = {}
 data.edges             = {}
 data.editor_state      = 0

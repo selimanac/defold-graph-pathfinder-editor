@@ -20,7 +20,7 @@ local is_node_moving = false
 -- =======================================
 
 function graph.set_nodes_visiblity()
-	local status = data.options.draw_nodes and "enable" or "disable"
+	local status = data.options.draw.nodes and "enable" or "disable"
 	for _, node in pairs(data.nodes) do
 		msg.post(node.url, status)
 	end
