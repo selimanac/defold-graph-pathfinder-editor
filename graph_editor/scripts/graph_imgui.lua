@@ -47,7 +47,6 @@ end
 local function prepare_for_save()
 	local duplicate = sys.serialize(data.nodes)
 	duplicate = sys.deserialize(duplicate)
-
 	for _, node in pairs(duplicate) do
 		--node.position = vec3_to_table(node.position)
 		for i, edge in ipairs(data.edges) do
@@ -373,16 +372,29 @@ local function stats()
 	imgui.text_colored(data.action_status, 0, 1, 0, 1)
 
 	if data.stats.path_cache then
-		imgui.text("Path Cache - Current Entries: " .. data.stats.path_cache.current_entries .. " | Max Capacity: " .. data.stats.path_cache.max_capacity .. " | Hit Rate: " .. data.stats.path_cache.hit_rate .. "%")
+		imgui.text("Path Cache - Current Entries: " ..
+			data.stats.path_cache.current_entries ..
+			" | Max Capacity: " ..
+			data.stats.path_cache.max_capacity .. " | Hit Rate: " .. data.stats.path_cache.hit_rate .. "%")
 	end
 
 	if data.stats.distance_cache then
-		imgui.text("Distance Cache - Current Entries: " .. data.stats.distance_cache.current_size .. " | Hit Count: " .. data.stats.distance_cache.hit_count .. " | Miss Count: " .. data.stats.distance_cache.miss_count .. " | Hit Rate: " .. data.stats.distance_cache.hit_rate .. "%")
+		imgui.text("Distance Cache - Current Entries: " ..
+			data.stats.distance_cache.current_size ..
+			" | Hit Count: " ..
+			data.stats.distance_cache.hit_count ..
+			" | Miss Count: " ..
+			data.stats.distance_cache.miss_count .. " | Hit Rate: " .. data.stats.distance_cache.hit_rate .. "%")
 	end
 
 	if data.stats.spatial_index then
 		imgui.text("Spatial Index - Cell Count: " ..
-			data.stats.spatial_index.cell_count .. " |  Edge Count: " .. data.stats.spatial_index.edge_count .. " | Avg. Edges per Cell: " .. data.stats.spatial_index.avg_edges_per_cell .. " | Max Edges per Cell: " .. data.stats.spatial_index.max_edges_per_cell)
+			data.stats.spatial_index.cell_count ..
+			" |  Edge Count: " ..
+			data.stats.spatial_index.edge_count ..
+			" | Avg. Edges per Cell: " ..
+			data.stats.spatial_index.avg_edges_per_cell ..
+			" | Max Edges per Cell: " .. data.stats.spatial_index.max_edges_per_cell)
 	end
 	imgui.separator()
 
@@ -407,7 +419,8 @@ local function node()
 	imgui.text("URL: " .. data.selected_node.url)
 	imgui.set_next_item_width(250)
 
-	changed, x, y, z = imgui.input_float3("Position", data.selected_node.position.x, data.selected_node.position.y, data.selected_node.position.z)
+	changed, x, y, z = imgui.input_float3("Position", data.selected_node.position.x, data.selected_node.position.y,
+		data.selected_node.position.z)
 	if changed then
 		data.selected_node.position.x = x
 		data.selected_node.position.y = y
@@ -467,7 +480,8 @@ local function settings()
 
 		imgui.text("Status: ")
 		imgui.same_line()
-		local status_color = data.path.node_to_node.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
+		local status_color = data.path.node_to_node.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or
+			const.COLORS.RED
 		imgui.text_colored(data.path.node_to_node.status_text, status_color.x, status_color.y, status_color.z, 1)
 
 		imgui.set_next_item_width(250)
@@ -503,17 +517,20 @@ local function settings()
 
 		imgui.text("Status: ")
 		imgui.same_line()
-		local status_color = data.path.projected_to_node.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
+		local status_color = data.path.projected_to_node.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or
+			const.COLORS.RED
 		imgui.text_colored(data.path.projected_to_node.status_text, status_color.x, status_color.y, status_color.z, 1)
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Goal Node Id##projected_to_node", data.options.projected_to_node.goal_node_id)
+		changed, int_value = imgui.input_int("Goal Node Id##projected_to_node",
+			data.options.projected_to_node.goal_node_id)
 		if changed then
 			data.options.projected_to_node.goal_node_id = int_value
 		end
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Max Path Lenght##projected_to_node", data.options.projected_to_node.max_path)
+		changed, int_value = imgui.input_int("Max Path Lenght##projected_to_node",
+			data.options.projected_to_node.max_path)
 		if changed then
 			data.options.projected_to_node.max_path = int_value
 		end
@@ -534,17 +551,20 @@ local function settings()
 
 		imgui.text("Status: ")
 		imgui.same_line()
-		local status_color = data.path.node_to_projected.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
+		local status_color = data.path.node_to_projected.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or
+			const.COLORS.RED
 		imgui.text_colored(data.path.node_to_projected.status_text, status_color.x, status_color.y, status_color.z, 1)
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Start Node Id##node_to_projected", data.options.node_to_projected.start_node_id)
+		changed, int_value = imgui.input_int("Start Node Id##node_to_projected",
+			data.options.node_to_projected.start_node_id)
 		if changed then
 			data.options.node_to_projected.start_node_id = int_value
 		end
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Max Path Lenght##node_to_projected", data.options.node_to_projected.max_path)
+		changed, int_value = imgui.input_int("Max Path Lenght##node_to_projected",
+			data.options.node_to_projected.max_path)
 		if changed then
 			data.options.node_to_projected.max_path = int_value
 		end
@@ -565,11 +585,14 @@ local function settings()
 
 		imgui.text("Status: ")
 		imgui.same_line()
-		local status_color = data.path.projected_to_projected.status == pathfinder.PathStatus.SUCCESS and const.COLORS.GREEN or const.COLORS.RED
-		imgui.text_colored(data.path.projected_to_projected.status_text, status_color.x, status_color.y, status_color.z, 1)
+		local status_color = data.path.projected_to_projected.status == pathfinder.PathStatus.SUCCESS and
+			const.COLORS.GREEN or const.COLORS.RED
+		imgui.text_colored(data.path.projected_to_projected.status_text, status_color.x, status_color.y, status_color.z,
+			1)
 
 		imgui.set_next_item_width(250)
-		changed, x, y, z = imgui.input_float3("Start Position", data.options.projected_to_projected.start_position.x, data.options.projected_to_projected.start_position.y, data.options.projected_to_projected.start_position.z)
+		changed, x, y, z = imgui.input_float3("Start Position", data.options.projected_to_projected.start_position.x,
+			data.options.projected_to_projected.start_position.y, data.options.projected_to_projected.start_position.z)
 		if changed then
 			data.options.projected_to_projected.start_position.x = x
 			data.options.projected_to_projected.start_position.x = y
@@ -577,7 +600,8 @@ local function settings()
 		end
 
 		imgui.set_next_item_width(250)
-		changed, int_value = imgui.input_int("Max Path Lenght##projected_to_projected", data.options.projected_to_projected.max_path)
+		changed, int_value = imgui.input_int("Max Path Lenght##projected_to_projected",
+			data.options.projected_to_projected.max_path)
 		if changed then
 			data.options.projected_to_projected.max_path = int_value
 		end
@@ -613,7 +637,8 @@ local function settings()
 
 		if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_QUADRATIC then
 			imgui.set_next_item_width(250)
-			changed, float_value = imgui.drag_float("Curve Radius", data.options.smoothing_config.bezier_curve_radius, 0.01, 0.0, 1.0, 1)
+			changed, float_value = imgui.drag_float("Curve Radius", data.options.smoothing_config.bezier_curve_radius,
+				0.01, 0.0, 1.0, 1)
 			if changed then
 				data.options.smoothing_config.bezier_curve_radius = float_value
 				graph.update_smooth_config()
@@ -622,7 +647,8 @@ local function settings()
 
 		if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_CUBIC then
 			imgui.set_next_item_width(250)
-			changed, float_value = imgui.drag_float("Control Point Offset", data.options.smoothing_config.bezier_control_point_offset, 0.01, 0.0, 1.0, 1)
+			changed, float_value = imgui.drag_float("Control Point Offset",
+				data.options.smoothing_config.bezier_control_point_offset, 0.01, 0.0, 1.0, 1)
 			if changed then
 				data.options.smoothing_config.bezier_control_point_offset = float_value
 				graph.update_smooth_config()
@@ -631,21 +657,24 @@ local function settings()
 
 		if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.BEZIER_ADAPTIVE then
 			imgui.set_next_item_width(250)
-			changed, float_value = imgui.drag_float("Tightness", data.options.smoothing_config.bezier_adaptive_tightness, 0.01, 0.0, 1.0, 1)
+			changed, float_value = imgui.drag_float("Tightness", data.options.smoothing_config.bezier_adaptive_tightness,
+				0.01, 0.0, 1.0, 1)
 			if changed then
 				data.options.smoothing_config.bezier_adaptive_tightness = float_value
 				graph.update_smooth_config()
 			end
 
 			imgui.set_next_item_width(250)
-			changed, float_value = imgui.drag_float("Roundness", data.options.smoothing_config.bezier_adaptive_roundness, 0.01, 0.0, 1.0, 1)
+			changed, float_value = imgui.drag_float("Roundness", data.options.smoothing_config.bezier_adaptive_roundness,
+				0.01, 0.0, 1.0, 1)
 			if changed then
 				data.options.smoothing_config.bezier_adaptive_roundness = float_value
 				graph.update_smooth_config()
 			end
 
 			imgui.set_next_item_width(250)
-			changed, float_value = imgui.drag_float("Max Corner Distance", data.options.smoothing_config.bezier_adaptive_max_corner_distance, 0.1, 0.0, 100.0, 0.1)
+			changed, float_value = imgui.drag_float("Max Corner Distance",
+				data.options.smoothing_config.bezier_adaptive_max_corner_distance, 0.1, 0.0, 100.0, 0.1)
 			if changed then
 				data.options.smoothing_config.bezier_adaptive_max_corner_distance = float_value
 				graph.update_smooth_config()
@@ -654,7 +683,8 @@ local function settings()
 
 		if data.options.smoothing_config.style == pathfinder.PathSmoothStyle.CIRCULAR_ARC then
 			imgui.set_next_item_width(250)
-			changed, float_value = imgui.drag_float("Arc Radius", data.options.smoothing_config.bezier_arc_radius, 0.1, 0.0, 100.0, 0.1)
+			changed, float_value = imgui.drag_float("Arc Radius", data.options.smoothing_config.bezier_arc_radius, 0.1,
+				0.0, 100.0, 0.1)
 			if changed then
 				data.options.smoothing_config.bezier_arc_radius = float_value
 				graph.update_smooth_config()

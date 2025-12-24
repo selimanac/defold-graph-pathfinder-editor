@@ -15,5 +15,6 @@ RELEASE-NOTES.md
 *.sublime-project
 *.sublime-workspace
 *.appmanifest
+.luarc.json
 /.cache
 _codeql_detected_source_root
