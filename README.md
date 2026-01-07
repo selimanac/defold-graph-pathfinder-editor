@@ -427,3 +427,12 @@ When you're ready to use the graph in your game:
 ```
 
 
+---
+
+## Toss a Coin to Your Witcher
+If you find my [Defold Extensions](https://github.com/selimanac) useful for your projects, please consider [supporting](https://github.com/sponsors/selimanac) it.  
+I'd love to hear about your projects! Please share your released projects that use my native extensions. It would be very motivating for me.
+
+
+---
+
