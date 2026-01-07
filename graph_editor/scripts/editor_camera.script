@@ -94,6 +94,10 @@ end
 
 function on_input(self, action_id, action)
 	if data.want_mouse_input then -- Mouse on imgui window
+		self.move_backward = false
+		self.move_forward = false
+		self.move_left = false
+		self.move_right = false
 		return
 	end
 

@@ -1,5 +1,6 @@
 [bootstrap]
 main_collection = /examples/editors/editor_xy.collectionc
+render = /builtins/render/default.renderc
 
 [script]
 shared_state = 1
