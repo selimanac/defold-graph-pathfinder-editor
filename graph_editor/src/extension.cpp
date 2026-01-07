@@ -45,11 +45,11 @@ static int GetProjectRoot(lua_State* L)
     char path[PATH_MAX];
     if (GetCWD(path, sizeof(path)) == NULL)
     {
-        // GetCWD failed - provide diagnostic information
+        // GetCWD failed
         const char* error_msg = "Failed to get current working directory";
 
 #if !defined(_WIN32) && !defined(_WIN64)
-        // On Unix-like systems, check errno for specific error
+        // On Unix-like
         if (errno == EACCES)
         {
             error_msg = "Permission denied: cannot read current working directory";
@@ -68,9 +68,10 @@ static int GetProjectRoot(lua_State* L)
         dmLogError("GetProjectRoot: _getcwd failed");
 #endif
 
+        // Return nil and error message
         lua_pushnil(L);
         lua_pushstring(L, error_msg);
-        return 2; // Return nil and error message
+        return 2;
     }
 
     // Normalize Windows backslashes to forward slashes
@@ -91,7 +92,7 @@ static int GetProjectRoot(lua_State* L)
         path[len - 1] = '\0';
     }
 
-    // If the last directory is "build", remove it
+    // last directory is "build", remove it
     char* last_slash = strrchr(path, '/');
     if (last_slash)
     {
@@ -106,7 +107,6 @@ static int GetProjectRoot(lua_State* L)
     return 1;
 }
 
-// Functions exposed to Lua
 static const luaL_reg Module_methods[] = { { "get", GetProjectRoot }, { 0, 0 } };
 
 static void           LuaInit(lua_State* L)
