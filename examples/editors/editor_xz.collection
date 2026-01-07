@@ -1,0 +1,49 @@
+name: "main"
+collection_instances {
+  id: "graph_editor"
+  collection: "/graph_editor/graph_editor_3D.collection"
+  instance_properties {
+    id: "editor_camera"
+    properties {
+      id: "editor_camera"
+      properties {
+        id: "zoom"
+        value: "11.0"
+        type: PROPERTY_TYPE_NUMBER
+      }
+    }
+  }
+}
+collection_instances {
+  id: "tracks"
+  collection: "/examples/components/collections/tracks.collection"
+}
+scale_along_z: 0
+embedded_instances {
+  id: "ground"
+  data: "embedded_components {\n"
+  "  id: \"model\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
+  "materials {\\n"
+  "  name: \\\"default\\\"\\n"
+  "  material: \\\"/examples/materials/unlit/model_unlit_instanced.material\\\"\\n"
+  "  textures {\\n"
+  "    sampler: \\\"tex0\\\"\\n"
+  "    texture: \\\"/examples/assets/ground.png\\\"\\n"
+  "  }\\n"
+  "}\\n"
+  "create_go_bones: false\\n"
+  "\"\n"
+  "}\n"
+  ""
+  rotation {
+    x: -0.70710677
+    w: 0.70710677
+  }
+  scale3 {
+    x: 9.0
+    y: 5.0
+  }
+}

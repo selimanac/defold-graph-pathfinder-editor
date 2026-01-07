@@ -1,0 +1,4 @@
+images {
+  image: "/examples/assets/tower.png"
+}
+extrude_borders: 2

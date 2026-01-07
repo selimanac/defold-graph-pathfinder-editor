@@ -1,0 +1,79 @@
+local M = {}
+
+local template = [[embedded_components {
+  id: "model"
+  type: "model"
+  data: "mesh: \"/examples/assets/kaykit_holiday/gltf/%s.gltf\"\n"
+  "name: \"{{NAME}}\"\n"
+  "materials {\n"
+  "  name: \"holiday\"\n"
+  "  material: \"/examples/materials/unlit/model_unlit_instanced.material\"\n"
+  "  textures {\n"
+  "    sampler: \"tex0\"\n"
+  "    texture: \"/examples/assets/kaykit_holiday/textures/holiday_bits_texture.png\"\n"
+  "  }\n"
+  "}\n"
+    "create_go_bones: false\n"
+  ""
+}
+]]
+
+function M.get_commands()
+    return {
+        editor.command({
+            label = "Generate models",
+            locations = { "Edit" },
+            id = "game.generate-models",
+            run = function()
+                local assets = editor.get("/examples/assets/kaykit_holiday/gltf", "children")
+                local root_dir = "/examples/assets/models"
+                editor.delete_directory(root_dir)
+                local resources = {}
+                for i = 1, #assets do
+                    local glb_path = assets[i]
+                    local base_name = glb_path:match("([^/]+)%.gltf$")
+                    if base_name then
+                        local go = root_dir .. "/" .. base_name .. ".go"
+                        resources[#resources + 1] = { go, template:format(base_name) }
+                    end
+                end
+                editor.create_resources(resources)
+
+                local coll = "/examples/assets/all.collection"
+                local edit_txs = { editor.tx.clear(coll, "children") }
+
+                local row = math.floor(math.sqrt(#resources))
+                local half = math.floor(row / 2)
+                for i = 1, #resources do
+                    local go = resources[i][1]
+                    local x = (i - 1) % row
+                    local z = math.floor(i / row)
+                    edit_txs[#edit_txs + 1] = editor.tx.add(coll, "children", {
+                        type = "go-reference",
+                        path = go,
+                        position = { -(x - half) * 1.5, 0, -(z - half) * 1.5 },
+                        children = {
+                            {
+                                type = "go",
+                                scale = { 0.007, 0.007, 0.007 },
+                                position = { 0, 0.2, 0.7 },
+                                components = {
+                                    {
+                                        type = "label",
+                                        text = go:match("([^/]+)%.go$"),
+                                        font = "/main/font.font",
+                                        material = "/builtins/fonts/label.material"
+                                    }
+                                }
+                            }
+                        }
+                    })
+                end
+                editor.transact(edit_txs)
+                editor.save()
+            end
+        })
+    }
+end
+
+return M

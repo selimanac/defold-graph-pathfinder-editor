@@ -1,0 +1,11 @@
+mesh: "/graph_editor/assets/models/agent.glb"
+name: "car"
+materials {
+  name: "tex-global"
+  material: "/examples/materials/unlit/model_unlit_instanced.material"
+  textures {
+    sampler: "tex0"
+    texture: "/graph_editor/assets/images/green.png"
+  }
+}
+create_go_bones: false

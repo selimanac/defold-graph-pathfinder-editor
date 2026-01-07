@@ -1,0 +1,16 @@
+embedded_components {
+  id: "model"
+  type: "model"
+  data: "mesh: \"/examples/assets/kaykit_holiday/gltf/train_tender_empty.gltf\"\n"
+  "name: \"{{NAME}}\"\n"
+  "materials {\n"
+  "  name: \"holiday\"\n"
+  "  material: \"/examples/materials/unlit/model_unlit_instanced.material\"\n"
+  "  textures {\n"
+  "    sampler: \"tex0\"\n"
+  "    texture: \"/examples/assets/kaykit_holiday/textures/holiday_bits_texture.png\"\n"
+  "  }\n"
+  "}\n"
+    "create_go_bones: false\n"
+  ""
+}

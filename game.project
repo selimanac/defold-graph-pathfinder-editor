@@ -1,0 +1,52 @@
+[bootstrap]
+main_collection = /examples/editors/editor_xy.collectionc
+
+[script]
+shared_state = 1
+
+[display]
+width = 1920
+height = 1080
+high_dpi = 1
+fullscreen = 0
+
+[android]
+input_method = HiddenInputField
+
+[html5]
+scale_mode = stretch
+
+[project]
+title = defold-graph-pathfinder-editor
+custom_resources = data
+dependencies#0 = https://github.com/selimanac/defold-graph-pathfinder/archive/refs/heads/main.zip
+dependencies#1 = https://github.com/selimanac/defold-random/archive/refs/heads/master.zip
+dependencies#2 = https://github.com/britzl/extension-imgui/archive/refs/heads/master.zip
+dependencies#3 = https://github.com/selimanac/defold-daabbcc3d/archive/refs/heads/main.zip
+dependencies#4 = https://github.com/selimanac/defold-uuid4/archive/refs/heads/master.zip
+
+[native_extension]
+app_manifest = /macos.appmanifest
+
+[sprite]
+max_count = 1024
+
+[library]
+include_dirs = graph_editor
+
+[graph_editor]
+folder = data
+max_gameobject_nodes = 1024
+max_nodes = 1024
+plane = XY
+files = "test2D.json", "test3D.json", "default.json"
+
+[label]
+max_count = 1024
+
+[factory]
+max_count = 1024
+
+[daabbcc]
+max_gameobject_count = 1024
+

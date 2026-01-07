@@ -1,0 +1,255 @@
+name: "tracks"
+instances {
+  id: "tracks_straight2"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: -7.0
+    z: 1.0
+  }
+}
+instances {
+  id: "tracks_curve"
+  prototype: "/examples/components/gameobjects/tracks_curve.go"
+  position {
+    x: -5.0
+    z: 1.5
+  }
+  rotation {
+    y: -0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_straight3"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: -4.5
+    z: 3.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_curve1"
+  prototype: "/examples/components/gameobjects/tracks_curve.go"
+  position {
+    x: -5.0
+    z: -1.5
+  }
+  rotation {
+    y: 1.0
+    w: 6.123234E-17
+  }
+}
+instances {
+  id: "tracks_straight4"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: -4.5
+    z: -3.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_curve2"
+  prototype: "/examples/components/gameobjects/tracks_curve.go"
+  position {
+    x: -4.0
+    z: -1.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_straight5"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: -2.0
+    z: -1.0
+  }
+}
+instances {
+  id: "tracks_crossing"
+  prototype: "/examples/components/gameobjects/tracks_crossing.go"
+  position {
+    x: -2.0
+    z: 0.5
+  }
+}
+instances {
+  id: "tracks_split_left"
+  prototype: "/examples/components/gameobjects/tracks_split_left.go"
+  position {
+    x: -6.26
+    z: -1.19
+  }
+}
+instances {
+  id: "tracks_straight7"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: -4.5
+    z: 0.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_straight8"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: -3.5
+    z: 0.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_curve3"
+  prototype: "/examples/components/gameobjects/tracks_curve.go"
+  position {
+    x: -4.0
+    z: 1.5
+  }
+}
+instances {
+  id: "tracks_straight6"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: -0.5
+    z: 0.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_split_left1"
+  prototype: "/examples/components/gameobjects/tracks_split_left.go"
+  position {
+    x: 0.3
+    z: -0.24
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_curve4"
+  prototype: "/examples/components/gameobjects/tracks_curve.go"
+  position {
+    x: 4.0
+    z: -1.5
+  }
+  rotation {
+    y: 1.0
+    w: 6.123234E-17
+  }
+}
+instances {
+  id: "tracks_straight10"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: 4.5
+    z: -3.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_curve5"
+  prototype: "/examples/components/gameobjects/tracks_curve.go"
+  position {
+    x: 5.0
+    z: -1.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_curve6"
+  prototype: "/examples/components/gameobjects/tracks_curve.go"
+  position {
+    x: 5.0
+    z: -1.5
+  }
+}
+instances {
+  id: "tracks_straight11"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: 4.5
+    z: 0.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_straight12"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: 3.5
+    z: 0.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+instances {
+  id: "tracks_straight9"
+  prototype: "/examples/components/gameobjects/tracks_straight.go"
+  position {
+    x: 2.5
+    z: 0.5
+  }
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+}
+scale_along_z: 0
+embedded_instances {
+  id: "tracks"
+  children: "tracks_crossing"
+  children: "tracks_curve"
+  children: "tracks_curve1"
+  children: "tracks_curve2"
+  children: "tracks_curve3"
+  children: "tracks_curve4"
+  children: "tracks_curve5"
+  children: "tracks_curve6"
+  children: "tracks_split_left"
+  children: "tracks_split_left1"
+  children: "tracks_straight10"
+  children: "tracks_straight11"
+  children: "tracks_straight12"
+  children: "tracks_straight2"
+  children: "tracks_straight3"
+  children: "tracks_straight4"
+  children: "tracks_straight5"
+  children: "tracks_straight6"
+  children: "tracks_straight7"
+  children: "tracks_straight8"
+  children: "tracks_straight9"
+  data: ""
+}

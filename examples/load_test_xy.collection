@@ -1,0 +1,45 @@
+name: "load_test"
+instances {
+  id: "editor_camera_2D"
+  prototype: "/graph_editor/components/gameobjects/editor_camera_2D.go"
+}
+scale_along_z: 0
+embedded_instances {
+  id: "scripts"
+  data: "components {\n"
+  "  id: \"test\"\n"
+  "  component: \"/examples/scripts/load_2D.script\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "factories"
+  data: "components {\n"
+  "  id: \"node\"\n"
+  "  component: \"/graph_editor/components/factories/node2D.factory\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"agent\"\n"
+  "  component: \"/graph_editor/components/factories/agent2D.factory\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"direction\"\n"
+  "  component: \"/graph_editor/components/factories/direction2D.factory\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "go"
+  data: "embedded_components {\n"
+  "  id: \"sprite\"\n"
+  "  type: \"sprite\"\n"
+  "  data: \"default_animation: \\\"tower\\\"\\n"
+  "material: \\\"/builtins/materials/sprite.material\\\"\\n"
+  "textures {\\n"
+  "  sampler: \\\"texture_sampler\\\"\\n"
+  "  texture: \\\"/examples/assets/background2.atlas\\\"\\n"
+  "}\\n"
+  "\"\n"
+  "}\n"
+  ""
+}

@@ -1,0 +1,69 @@
+-- =======================================
+-- LOAD XZ GRAPH EXAMPLE
+-- Demonstrates loading and rendering exported graph data for XZ plane
+--
+-- PURPOSE:
+-- This script shows how to load graph data that was exported from the editor
+-- and use it for pathfinding in a 3D game context (XZ plane).
+-- =======================================
+
+local graph_importer = require "graph_editor.scripts.graph_importer"
+local utils          = require "examples.scripts.utils"
+
+-- Module-level storage for node and edge data
+local nodes          = {}
+local edges          = {}
+
+--- Initialize the graph system
+-- Loads the graph data, initializes the pathfinder, and creates visual elements
+function init(self)
+	-- Load graph data from exported JSON files
+	-- Returns: {nodes = {...}, edges = {...}} or nil on error
+	local loaded_data, load_error = utils.load("test3D")
+
+	if not loaded_data then
+		-- Loading failed - error already logged by utils.load()
+		pprint("FATAL: Cannot load graph data:", load_error)
+		pprint("Make sure test3D_nodes.json and test3D_edges.json exist in /data/")
+		return
+	end
+
+	-- Count nodes for pathfinder initialization
+	-- Note: Using table counting since loaded_data.nodes is a table indexed by UUID
+	local node_count = 0
+	for _ in pairs(loaded_data.nodes) do
+		node_count = node_count + 1
+	end
+
+	-- Pathfinder configuration
+	-- Adjust these values based on your graph size and requirements
+	local max_nodes             = node_count > 0 and node_count or 128 -- Minimum 128
+	local max_gameobject_nodes  = nil                               -- Not used
+	local max_edges_per_node    = 16                                -- Max edges per node
+	local heap_pool_block_size  = 32                                -- A* heap allocation
+	local max_cache_path_length = 32                                -- Path cache size
+
+	-- Initialize pathfinder system with configuration
+	-- This must be called before using any pathfinder functions
+	pathfinder.init(max_nodes, max_gameobject_nodes, max_edges_per_node, heap_pool_block_size, max_cache_path_length)
+
+	-- Import graph data into pathfinder
+	-- Returns nodes indexed by pathfinder_node_id and edges with updated IDs
+	nodes, edges = graph_importer.generate(loaded_data.nodes, loaded_data.edges)
+
+	-- Create visual representation of nodes
+	-- Creates game objects at each node position with labels
+	utils.draw_nodes(nodes)
+
+	-- Create direction indicators for directional edges
+	-- Only creates indicators for edges where bidirectional = false
+	utils.draw_edge_directions(edges)
+
+	pprint("Graph loaded successfully:")
+	pprint("  Nodes:", node_count)
+	pprint("  Plane: XZ (3D)")
+end
+
+function update(self, dt)
+	utils.draw_edges(edges)
+end

@@ -1,0 +1,19 @@
+images {
+  image: "/graph_editor/assets/images/direction.png"
+}
+images {
+  image: "/graph_editor/assets/images/entry.png"
+}
+images {
+  image: "/graph_editor/assets/images/mouse.png"
+}
+images {
+  image: "/graph_editor/assets/images/node.png"
+}
+images {
+  image: "/graph_editor/assets/images/node_back.png"
+}
+images {
+  image: "/graph_editor/assets/images/pointy_dot_ac_s.png"
+}
+extrude_borders: 2

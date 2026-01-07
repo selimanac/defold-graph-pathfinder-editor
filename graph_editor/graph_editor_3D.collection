@@ -1,0 +1,42 @@
+name: "graph_editor"
+instances {
+  id: "mouse"
+  prototype: "/graph_editor/components/gameobjects/mouse3D.go"
+}
+instances {
+  id: "editor_camera"
+  prototype: "/graph_editor/components/gameobjects/editor_camera_3D.go"
+  rotation {
+    x: -0.70710677
+    w: 0.70710677
+  }
+}
+scale_along_z: 0
+embedded_instances {
+  id: "scripts"
+  data: "components {\n"
+  "  id: \"editor\"\n"
+  "  component: \"/graph_editor/scripts/editor.script\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"imgui\"\n"
+  "  component: \"/imgui/imgui.script\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "factories"
+  data: "components {\n"
+  "  id: \"node\"\n"
+  "  component: \"/graph_editor/components/factories/node3D.factory\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"agent\"\n"
+  "  component: \"/graph_editor/components/factories/agent3D.factory\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"direction\"\n"
+  "  component: \"/graph_editor/components/factories/direction3D.factory\"\n"
+  "}\n"
+  ""
+}

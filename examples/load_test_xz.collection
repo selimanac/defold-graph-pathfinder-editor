@@ -1,0 +1,77 @@
+name: "load_test"
+instances {
+  id: "editor_camera"
+  prototype: "/graph_editor/components/gameobjects/editor_camera_3D.go"
+  position {
+    y: 14.353307
+  }
+  rotation {
+    x: -0.70710677
+    w: 0.70710677
+  }
+  component_properties {
+    id: "editor_camera"
+    properties {
+      id: "zoom"
+      value: "10.0"
+      type: PROPERTY_TYPE_NUMBER
+    }
+  }
+}
+collection_instances {
+  id: "tracks"
+  collection: "/examples/components/collections/tracks.collection"
+}
+scale_along_z: 0
+embedded_instances {
+  id: "scripts"
+  data: "components {\n"
+  "  id: \"test\"\n"
+  "  component: \"/examples/scripts/load_3D.script\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "factories"
+  data: "components {\n"
+  "  id: \"node\"\n"
+  "  component: \"/graph_editor/components/factories/node3D.factory\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"agent\"\n"
+  "  component: \"/graph_editor/components/factories/agent3D.factory\"\n"
+  "}\n"
+  "components {\n"
+  "  id: \"direction\"\n"
+  "  component: \"/graph_editor/components/factories/direction3D.factory\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "ground"
+  data: "embedded_components {\n"
+  "  id: \"model\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
+  "materials {\\n"
+  "  name: \\\"default\\\"\\n"
+  "  material: \\\"/examples/materials/unlit/model_unlit_instanced.material\\\"\\n"
+  "  textures {\\n"
+  "    sampler: \\\"tex0\\\"\\n"
+  "    texture: \\\"/examples/assets/ground.png\\\"\\n"
+  "  }\\n"
+  "}\\n"
+  "create_go_bones: false\\n"
+  "\"\n"
+  "}\n"
+  ""
+  rotation {
+    x: -0.70710677
+    w: 0.70710677
+  }
+  scale3 {
+    x: 9.0
+    y: 5.0
+  }
+}
