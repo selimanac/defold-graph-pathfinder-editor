@@ -11,9 +11,6 @@ local utils       = require("graph_editor.scripts.editor_utils")
 -- =======================================
 local editor      = {}
 
-
---- Initialize the editor
--- Sets up ImGui and the graph system
 function editor.init()
 	-- Initialize project folder path with error handling
 	local path, err = project_path.get()

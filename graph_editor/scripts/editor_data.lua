@@ -14,8 +14,8 @@ data.edges                = {}
 
 -- Lookup tables
 data.lookup               = {
-	aabb_to_node = {},   -- Node AABB ID to node id(uuid)
-	aabb_to_edge = {},   -- Edge AABB ID to edge id(uuid)
+	aabb_to_node       = {}, -- Node AABB ID to node id(uuid)
+	aabb_to_edge       = {}, -- Edge AABB ID to edge id(uuid)
 	pathfinder_to_node = {} -- Pathfinder ID to node id(uuid)
 }
 

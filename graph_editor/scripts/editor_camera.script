@@ -17,7 +17,6 @@ local data     = require("graph_editor.scripts.editor_data")
 local defaults = {}
 
 function init(self)
-	-- Acquire input focus to receive input events
 	msg.post(".", "acquire_input_focus")
 
 	-- Initialize start values

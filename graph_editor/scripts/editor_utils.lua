@@ -7,10 +7,6 @@ local collision = require("graph_editor.scripts.editor_collision")
 -- =======================================
 local utils     = {}
 
--- =======================================
--- PLANE COORDINATE HELPERS
--- =======================================
-
 --- Create a 3D vector from 2D pathfinder coordinates
 -- Pathfinder uses (x, y) which maps to the plane coordinates
 -- @param x Horizontal coordinate on the plane

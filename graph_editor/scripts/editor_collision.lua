@@ -13,7 +13,6 @@ local aabb_group_id      = 0
 
 function collision.init()
 	aabb_group_id = daabbcc3d.new_group(daabbcc3d.UPDATE_PARTIALREBUILD)
-	pprint(const.MOUSE)
 	collision.pointer_id = collision.insert_gameobject(const.MOUSE, const.COLLIDER_SIZE.x, const.COLLIDER_SIZE.y, const.COLLIDER_SIZE.z, collision.COLLISION_BITS.MOUSE)
 end
 

@@ -1,9 +1,5 @@
 local validation = {}
 
--- =======================================
--- DATA VALIDATION HELPERS
--- =======================================
-
 -- Validate that a value is a table
 function validation.is_table(value)
 	return type(value) == "table"
